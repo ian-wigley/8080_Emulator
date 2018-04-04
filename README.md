@@ -1,6 +1,9 @@
 # Emulator
 C# Forms emulator that plays the original Space Invaders game.
-Check the data folder, as it includes a test file to get started.
+Check the data folder, as it includes a test file to get you started.
+
+
+![](Emulator/Emulator.jpg)
 
 Keys :- 
 C- coin
