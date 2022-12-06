@@ -90,12 +90,14 @@ namespace Emulator
         // Open File method
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Load ROM files";
-            openFileDialog.InitialDirectory = @"*.*";
-            openFileDialog.Filter = "All files (*.*)|*.*|All files (*.ROM)|*.rom";
-            openFileDialog.FilterIndex = 2;
-            openFileDialog.RestoreDirectory = true;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Load ROM files",
+                InitialDirectory = @"*.*",
+                Filter = "All files (*.*)|*.*|All files (*.ROM)|*.rom",
+                FilterIndex = 2,
+                RestoreDirectory = true
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -120,7 +122,6 @@ namespace Emulator
             int start = rom.Count;
             int end = rom.Count * 2;
 
-            //for (int i = start; i < end + 1; i++)
             for (int i = start; i < end + 1001; i++)
             {
                 rom.Add(0);

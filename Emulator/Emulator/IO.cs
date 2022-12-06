@@ -4,10 +4,10 @@
     {
         // Input and output ports
         private byte OUT_PORT2;
-        //private byte OUT_PORT3;
+        private byte OUT_PORT3;
         private byte OUT_PORT4LO;
         private byte OUT_PORT4HI;
-        //private byte OUT_PORT5;
+        private byte OUT_PORT5;
         private byte IN_PORT1 = 0;
         private byte IN_PORT2 = 0;
         private CPU m_cpu;
@@ -15,7 +15,7 @@
         private byte BIT0 = 1;
         private byte BIT1 = 2;
         private byte BIT2 = 4;
-        //private byte BIT3 = 8;
+        private byte BIT3 = 8;
         private byte BIT4 = 16;
         private byte BIT5 = 32;
         private byte BIT6 = 64;
@@ -26,7 +26,7 @@
         private bool m_left = false;
         private bool m_right = false;
         private bool m_fire = false;
-        // private bool m_tilt = false;
+        private bool m_tilt = false;
 
         public IO()
         {
@@ -140,18 +140,18 @@
                 case 3:
                     if ((value & BIT0) == 0)
                     {
-                        // sound.StartUfo()
+                        // sound.StartUfo();
                     }
                     else
                     {
-                        // sound.StopUfo()
+                        // sound.StopUfo();
                     }
-                    //            If((value & BIT1) And Not (OUT_PORT3 & BIT1)) sound.PlayShot()
-                    //            If((value & BIT2) And Not (OUT_PORT3 & BIT2)) sound.PlayBaseHit()
-                    //            If((value & BIT3) And Not (OUT_PORT3 & BIT3)) sound.PlayInvHit()
-                    //            If((value & BIT4) And Not (OUT_PORT3 & BIT4)) sound.PlayExtraLife()
-                    //            If((value & BIT5) And Not (OUT_PORT3 & BIT5)) sound.PlayBeginPlay()
-                    //            OUT_PORT3 = value
+                    //if ((value & BIT1) && !(OUT_PORT3 & BIT1)) { sound.PlayShot(); }
+                    //if ((value & BIT2) && !(OUT_PORT3 &BIT2)) { sound.PlayBaseHit(); }
+                    //if ((value & BIT3) && !(OUT_PORT3 &BIT3)) { sound.PlayInvHit(); }
+                    //if ((value & BIT4) && !(OUT_PORT3 &BIT4)) { sound.PlayExtraLife(); }
+                    //if ((value & BIT5) && !(OUT_PORT3 &BIT5)) { sound.PlayBeginPlay(); }
+                    OUT_PORT3 = value;
                     break;
 
                 case 4:
@@ -161,12 +161,12 @@
 
                 // Port 5 also controls sound
                 case 5:
-                    //        If((value & BIT0) And Not (OUT_PORT5 & BIT0)) sound.PlayWalk1()
-                    //            If((value & BIT1) And Not (OUT_PORT5 & BIT1)) sound.PlayWalk2()
-                    //            If((value & BIT2) And Not (OUT_PORT5 & BIT2)) sound.PlayWalk3()
-                    //            If((value & BIT3) And Not (OUT_PORT5 & BIT3)) sound.PlayWalk4()
-                    //            If((value & BIT4) And Not (OUT_PORT5 & BIT4)) sound.PlayUfoHit()
-                    //            OUT_PORT5 = value
+                    //if ((value & BIT0) && !(OUT_PORT5 &BIT0)) sound.PlayWalk1();
+                    //if ((value & BIT1) && !(OUT_PORT5 &BIT1)) sound.PlayWalk2();
+                    //if ((value & BIT2) && !(OUT_PORT5 &BIT2)) sound.PlayWalk3();
+                    //if ((value & BIT3) && !(OUT_PORT5 &BIT3)) sound.PlayWalk4();
+                    //if ((value & BIT4) && !(OUT_PORT5 &BIT4)) sound.PlayUfoHit();
+                    OUT_PORT5 = value;
                     break;
             }
         }
