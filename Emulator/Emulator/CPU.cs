@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows.Forms;
 
 namespace Emulator
@@ -1177,7 +1176,7 @@ namespace Emulator
                     break;
                 case 0x82:
                     PerformByteAdd(D, 0);
-                   break;
+                    break;
                 case 0x83:
                     PerformByteAdd(E, 0);
                     break;
@@ -1238,7 +1237,7 @@ namespace Emulator
                     break;
                 case 0xad:
                     PerformXor(L);
-                     break;
+                    break;
                 case 0xae:
                     PerformXor(ReadByte(HL));
                     break;
@@ -1277,7 +1276,7 @@ namespace Emulator
                     PerformOr(A);
                     break;
                 case 0xb0:
-                    PerformOr(B);                    
+                    PerformOr(B);
                     break;
                 case 0xb1:
                     PerformOr(C);
