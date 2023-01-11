@@ -90,10 +90,11 @@ namespace Emulator
         // Open File method
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            //var dir = Directory.GetCurrentDirectory();
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Title = "Load ROM files",
-                InitialDirectory = @"*.*",
+                InitialDirectory = Directory.GetCurrentDirectory(), //@"*.*",
                 Filter = "All files (*.*)|*.*|All files (*.ROM)|*.rom",
                 FilterIndex = 2,
                 RestoreDirectory = true
@@ -117,8 +118,15 @@ namespace Emulator
                 {
                     MessageBox.Show("The file could not be read: " + ex.Message);
                 }
+                finally
+                {
+                    initialiseComponents();
+                }
             }
+        }
 
+        private void initialiseComponents()
+        {
             int start = rom.Count;
             int end = rom.Count * 2;
 
@@ -130,14 +138,12 @@ namespace Emulator
             m_io = new IO();
             m_cpu = new CPU(rom, m_io, label1);
             m_io.SetCPU(m_cpu);
-
         }
 
         // Save File method
         private void toolStripMenuItem2_Click(object sender, EventArgs e)
         {
         }
-
 
         // Exit the application
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
