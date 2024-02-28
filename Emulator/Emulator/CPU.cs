@@ -16,9 +16,9 @@ namespace Emulator
         private ushort E;// Register E. 8-bit register
         private ushort H;// Register H. 8-bit register
         private ushort L;// Register L. 8-bit register
-        private ushort BC;// Virtual register BC (16-bit) combinaison of registers B and C
-        private ushort DE;// Virtual register DE (16-bit) combinaison of registers D and E
-        private ushort HL;// Virtual register HL (16-bit) combinaison of registers H and L
+        private ushort BC;// Virtual register BC (16-bit) combination of registers B and C
+        private ushort DE;// Virtual register DE (16-bit) combination of registers D and E
+        private ushort HL;// Virtual register HL (16-bit) combination of registers H and L
 
         private ushort SIGN = 0;        // Sign flag
         private ushort ZERO = 0;        // Zero flag
@@ -35,7 +35,7 @@ namespace Emulator
         private int interrupt_alternate = 0;
         private int half_instruction_per_frame = 0;
 
-        // Addionnal debug fields, not used by CPU
+        // Additional debug fields, not used by CPU
         private byte BIT0 = 1;
         private byte BIT4 = 16;
         private byte BIT5 = 32;
@@ -278,7 +278,7 @@ namespace Emulator
                         Instruction_INP();
                         break;
                     case 0xe9:
-                        Instruction_PCHL(m_byte);
+                        Instruction_PCHL();
                         break;
                     case 0xc7:
                     case 0xcf:
@@ -291,16 +291,16 @@ namespace Emulator
                         Instruction_RST(m_byte);
                         break;
                     case 0x07:
-                        Instruction_RLC(m_byte);
+                        Instruction_RLC();
                         break;
                     case 0x17:
-                        Instruction_RAL(m_byte);
+                        Instruction_RAL();
                         break;
                     case 0x0f:
-                        Instruction_RRC(m_byte);
+                        Instruction_RRC();
                         break;
                     case 0x1f:
-                        Instruction_RAR(m_byte);
+                        Instruction_RAR();
                         break;
                     case 0xa7:
                     case 0xa0:
@@ -375,19 +375,19 @@ namespace Emulator
                         Instruction_SUB(m_byte);
                         break;
                     case 0x2a:
-                        Instruction_LHLD(m_byte);
+                        Instruction_LHLD();
                         break;
                     case 0x22:
-                        Instruction_SHLD(m_byte);
+                        Instruction_SHLD();
                         break;
                     case 0xde:
-                        Instruction_SBBI(m_byte);
+                        Instruction_SBBI();
                         break;
                     case 0x27:
-                        Instruction_DAA(m_byte);
+                        Instruction_DAA();
                         break;
                     case 0x2f:
-                        Instruction_CMA(m_byte);
+                        Instruction_CMA();
                         break;
                     case 0x8f:
                     case 0x88:
@@ -1050,7 +1050,7 @@ namespace Emulator
             SetA(m_io.InputPort(port));
         }
 
-        private void Instruction_PCHL(byte m_byte)
+        private void Instruction_PCHL()
         {
             m_PC = HL;
         }
@@ -1089,7 +1089,7 @@ namespace Emulator
             m_PC = address;
         }
 
-        private void Instruction_RLC(byte m_byte)
+        private void Instruction_RLC()
         {
             SetA((ushort)((A << 1) | (A >> 7)));
             var temp = (A & 1);
@@ -1097,7 +1097,7 @@ namespace Emulator
             CARRY = (ushort)(A & BIT0);
         }
 
-        private void Instruction_RAL(byte m_byte)
+        private void Instruction_RAL()
         {
             ushort temp = A;
             SetA((ushort)(A << 1));
@@ -1109,13 +1109,13 @@ namespace Emulator
             CARRY = (ushort)(temp & 0x80);
         }
 
-        private void Instruction_RRC(byte m_byte)
+        private void Instruction_RRC()
         {
             SetA((ushort)((A >> 1) | (A << 7)));
             CARRY = (ushort)(A & BIT7);
         }
 
-        private void Instruction_RAR(byte m_byte)
+        private void Instruction_RAR()
         {
             ushort temp = A;
             SetA((ushort)(A >> 1));
@@ -1338,19 +1338,19 @@ namespace Emulator
             }
         }
 
-        private void Instruction_LHLD(byte m_byte)
+        private void Instruction_LHLD()
         {
             ushort immediate = FetchRomShort();
             SetHL(ReadShort(immediate));
         }
 
-        private void Instruction_SHLD(byte m_byte)
+        private void Instruction_SHLD()
         {
             ushort immediate = FetchRomShort();
             WriteShort(immediate, HL);
         }
 
-        private void Instruction_SBBI(byte m_byte)
+        private void Instruction_SBBI()
         {
             byte immediate = FetchRomByte();
             byte carryvalue = 0;
@@ -1361,7 +1361,7 @@ namespace Emulator
             PerformByteSub(immediate, carryvalue);
         }
 
-        private void Instruction_DAA(byte m_byte)
+        private void Instruction_DAA()
         {
             if (((A & 0x0F) > 9) || Convert.ToBoolean(HALFCARRY))
             {
@@ -1385,7 +1385,7 @@ namespace Emulator
             setFlagZeroSign();
         }
 
-        private void Instruction_CMA(byte m_byte)
+        private void Instruction_CMA()
         {
             SetA((ushort)(A ^ 0xff));
         }
@@ -1499,9 +1499,9 @@ namespace Emulator
 
         private byte FetchRomByte()
         {
-            byte m_value = m_rom[m_PC];
+            byte value = m_rom[m_PC];
             m_PC += 1;
-            return m_value;
+            return value;
         }
 
         private ushort FetchRomShort()
