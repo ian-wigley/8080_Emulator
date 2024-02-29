@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -90,11 +89,10 @@ namespace Emulator
         // Open File method
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //var dir = Directory.GetCurrentDirectory();
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Title = "Load ROM files",
-                InitialDirectory = Directory.GetCurrentDirectory(), //@"*.*",
+                InitialDirectory = Directory.GetCurrentDirectory(),
                 Filter = "All files (*.*)|*.*|All files (*.ROM)|*.rom",
                 FilterIndex = 2,
                 RestoreDirectory = true
@@ -167,7 +165,7 @@ namespace Emulator
 
         private void DrawVertical()
         {
-            if (rom.Count() > 0)
+            if (rom.Count > 0)
             {
                 // Number of channels (ie. assuming 24 bit RGB in this case)
                 int ch = 1;
@@ -186,7 +184,7 @@ namespace Emulator
 
                         /*
                          *  Screen data is located at hex: $2400 dec: 9216
-                         *  
+                         *
                          *  Each line is made up of 256 pixels
                          *  Each byte contains 8 pixels worth of data (8 bits in 1 byte)
                          *  Each line consists of 32 bytes (32 * 8 = 256)
@@ -206,7 +204,7 @@ namespace Emulator
                             imageData[dst + 1] = color1;
 
                             dst -= pitch;
-                            vram = vram >> 1;
+                            vram >>= 1;
                         }
                     }
                 }
@@ -217,13 +215,13 @@ namespace Emulator
                 Marshal.Copy(imageData, 0, pNative, 256 * 256 * ch);
                 bitmap.UnlockBits(bmData);
                 pictureBox1.Image = bitmap;
-                this.Invalidate();
+                Invalidate();
             }
         }
 
         private void DrawHorizontal()
         {
-            if (rom.Count() > 0)
+            if (rom.Count > 0)
             {
                 // Number of channels (ie. assuming 24 bit RGB in this case)
                 int ch = 1;
