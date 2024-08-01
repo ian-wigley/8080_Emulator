@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.35026.282
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emulator", "Emulator\Emulator.csproj", "{2A378F87-9097-46D3-98E8-49678CE1D8AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorTests", "EmulatorTests\EmulatorTests.csproj", "{2E39205B-46BC-4291-AD91-0588380BE58C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +17,15 @@ Global
 		{2A378F87-9097-46D3-98E8-49678CE1D8AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A378F87-9097-46D3-98E8-49678CE1D8AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A378F87-9097-46D3-98E8-49678CE1D8AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E39205B-46BC-4291-AD91-0588380BE58C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E39205B-46BC-4291-AD91-0588380BE58C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E39205B-46BC-4291-AD91-0588380BE58C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E39205B-46BC-4291-AD91-0588380BE58C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4B3F1B23-21AD-47BA-8E90-E09DDB31338F}
 	EndGlobalSection
 EndGlobal
