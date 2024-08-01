@@ -45,6 +45,11 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
 Emulator/.vs
 Emulator/Emulator/bin
 Emulator/Emulator/obj
+Emulator/EmulatorTests/bin
+Emulator/EmulatorTests/obj
+/Emulator/packages
+/Emulator/EmulatorTests/Properties
