@@ -6,50 +6,50 @@ namespace Emulator
 {
     public class CPU
     {
-        private List<byte> m_rom;
-        private int m_PC;//Program Counter: This is the current instruction pointer. 16-bit register.
-        private ushort SP;// Stack Pointer. 16-bit register
-        private ushort A;// Accumulator. 8-bit register
-        private ushort B;// Register B. 8-bit register
-        private ushort C;// Register C. 8-bit register
-        private ushort D;// Register D. 8-bit register
-        private ushort E;// Register E. 8-bit register
-        private ushort H;// Register H. 8-bit register
-        private ushort L;// Register L. 8-bit register
-        private ushort BC;// Virtual register BC (16-bit) combination of registers B and C
-        private ushort DE;// Virtual register DE (16-bit) combination of registers D and E
-        private ushort HL;// Virtual register HL (16-bit) combination of registers H and L
+        public List<byte> m_rom;
+        public int m_PC;//Program Counter: This is the current instruction pointer. 16-bit register.
+        public ushort SP;// Stack Pointer. 16-bit register
+        public ushort A;// Accumulator. 8-bit register
+        public ushort B;// Register B. 8-bit register
+        public ushort C;// Register C. 8-bit register
+        public ushort D;// Register D. 8-bit register
+        public ushort E;// Register E. 8-bit register
+        public ushort H;// Register H. 8-bit register
+        public ushort L;// Register L. 8-bit register
+        public ushort BC;// Virtual register BC (16-bit) combination of registers B and C
+        public ushort DE;// Virtual register DE (16-bit) combination of registers D and E
+        public ushort HL;// Virtual register HL (16-bit) combination of registers H and L
 
-        private ushort SIGN = 0;        // Sign flag
-        private ushort ZERO = 0;        // Zero flag
-        private ushort HALFCARRY = 0;   //Half-carry (or Auxiliary Carry) flag
-        private bool PARITY = false;    //Parity flag
-        private ushort CARRY = 0;       //Carry flag
+        public ushort SIGN = 0;        // Sign flag
+        public ushort ZERO = 0;        // Zero flag
+        public ushort HALFCARRY = 0;   //Half-carry (or Auxiliary Carry) flag
+        public bool PARITY = false;    //Parity flag
+        public ushort CARRY = 0;       //Carry flag
 
-        private bool INTERRUPT = false; //Interrupt Enabled flag
-        private bool CRASHED;           //Special flag that tells if the CPU is currently crashed (stopped)
+        public bool INTERRUPT = false; //Interrupt Enabled flag
+        public bool CRASHED;           //Special flag that tells if the CPU is currently crashed (stopped)
 
-        private int instruction_per_frame = 4000; // Approximate real machine speed
+        public int instruction_per_frame = 4000; // Approximate real machine speed
 
         // Interrupt handling
-        private int interrupt_alternate = 0;
-        private int half_instruction_per_frame = 0;
+        public int interrupt_alternate = 0;
+        public int half_instruction_per_frame = 0;
 
         // Additional debug fields, not used by CPU
-        private byte BIT0 = 1;
-        private byte BIT4 = 16;
-        private byte BIT5 = 32;
-        private byte BIT6 = 64;
-        private byte BIT7 = 128;
+        public byte BIT0 = 1;
+        public byte BIT4 = 16;
+        public byte BIT5 = 32;
+        public byte BIT6 = 64;
+        public byte BIT7 = 128;
 
-        private ushort m_source = 0;
-        private ushort m_value = 0;
-        private byte m_byte = 0;
+        public ushort m_source = 0;
+        public ushort m_value = 0;
+        public byte m_byte = 0;
 
-        private int m_instructionCounter = 0;
+        public int m_instructionCounter = 0;
 
-        private IO m_io;
-        private Label m_label;
+        public IO m_io;
+        public Label m_label;
 
         public CPU(List<byte> rom, IO io, Label label)
         {
@@ -428,7 +428,7 @@ namespace Emulator
             }
         }
 
-        private void CallInterrupt(short inAddress)
+        public void CallInterrupt(short inAddress)
         {
             // Call the interrupt by pushing current PC on the stack and then jump to interrupt address
             INTERRUPT = false;
@@ -436,12 +436,12 @@ namespace Emulator
             m_PC = inAddress;
         }
 
-        private void NOP()
+        public void NOP()
         {
             // No Operation - Do nothing !
         }
 
-        private void Instruction_JMP(byte m_byte)
+        public void Instruction_JMP(byte m_byte)
         {
             ushort data16 = FetchRomShort();
             var m_condition = true;
@@ -476,7 +476,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_LXI(byte m_byte)
+        public void Instruction_LXI(byte m_byte)
         {
             switch (m_byte)
             {
@@ -495,7 +495,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_MVI(byte m_byte)
+        public void Instruction_MVI(byte m_byte)
         {
             switch (m_byte)
             {
@@ -526,7 +526,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_CALL(byte m_byte)
+        public void Instruction_CALL(byte m_byte)
         {
             ushort data16 = FetchRomShort();
             bool m_condition = true;
@@ -555,7 +555,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_LDA(byte m_byte)
+        public void Instruction_LDA(byte m_byte)
         {
             switch (m_byte)
             {
@@ -572,7 +572,7 @@ namespace Emulator
             SetA(ReadByte(m_source));
         }
 
-        private void Instruction_MOVHL(byte m_byte)
+        public void Instruction_MOVHL(byte m_byte)
         {
             switch (m_byte)
             {
@@ -600,7 +600,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_INX(byte m_byte)
+        public void Instruction_INX(byte m_byte)
         {
             switch (m_byte)
             {
@@ -619,7 +619,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_DCX(byte m_byte)
+        public void Instruction_DCX(byte m_byte)
         {
             switch (m_byte)
             {
@@ -638,7 +638,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_DEC(byte m_byte)
+        public void Instruction_DEC(byte m_byte)
         {
             switch (m_byte)
             {
@@ -669,7 +669,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_INC(byte m_byte)
+        public void Instruction_INC(byte m_byte)
         {
             switch (m_byte)
             {
@@ -700,7 +700,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_RET(byte m_byte)
+        public void Instruction_RET(byte m_byte)
         {
             bool m_condition = true;
 
@@ -727,7 +727,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_MOV(byte m_byte)
+        public void Instruction_MOV(byte m_byte)
         {
             switch (m_byte)
             {
@@ -902,7 +902,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_CMP(byte m_byte)
+        public void Instruction_CMP(byte m_byte)
         {
             switch (m_byte)
             {
@@ -937,7 +937,7 @@ namespace Emulator
             PerformCompSub((byte)m_value);
         }
 
-        private void Instruction_PUSH(byte m_byte)
+        public void Instruction_PUSH(byte m_byte)
         {
             switch (m_byte)
             {
@@ -977,7 +977,7 @@ namespace Emulator
             StackPush(m_value);
         }
 
-        private void Instruction_POP(byte m_byte)
+        public void Instruction_POP(byte m_byte)
         {
             m_value = StackPop();
             switch (m_byte)
@@ -1002,7 +1002,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_DAD(byte m_byte)
+        public void Instruction_DAD(byte m_byte)
         {
             switch (m_byte)
             {
@@ -1021,14 +1021,14 @@ namespace Emulator
             }
         }
 
-        private void Instruction_XCHG()
+        public void Instruction_XCHG()
         {
             ushort temp = DE;
             SetDE(HL);
             SetHL(temp);
         }
 
-        private void Instruction_XTHL()
+        public void Instruction_XTHL()
         {
             ushort temp = H;
             SetH(ReadByte(SP + 1));
@@ -1038,24 +1038,24 @@ namespace Emulator
             WriteByte(SP, temp);
         }
 
-        private void Instruction_OUTP()
+        public void Instruction_OUTP()
         {
             byte port = FetchRomByte();
             m_io.OutputPort(port, (byte)A);
         }
 
-        private void Instruction_INP()
+        public void Instruction_INP()
         {
             byte port = FetchRomByte();
             SetA(m_io.InputPort(port));
         }
 
-        private void Instruction_PCHL()
+        public void Instruction_PCHL()
         {
             m_PC = HL;
         }
 
-        private void Instruction_RST(byte m_byte)
+        public void Instruction_RST(byte m_byte)
         {
             ushort address = 0;
             switch (m_byte)
@@ -1089,7 +1089,7 @@ namespace Emulator
             m_PC = address;
         }
 
-        private void Instruction_RLC()
+        public void Instruction_RLC()
         {
             SetA((ushort)((A << 1) | (A >> 7)));
             var temp = (A & 1);
@@ -1097,7 +1097,7 @@ namespace Emulator
             CARRY = (ushort)(A & BIT0);
         }
 
-        private void Instruction_RAL()
+        public void Instruction_RAL()
         {
             ushort temp = A;
             SetA((ushort)(A << 1));
@@ -1109,13 +1109,13 @@ namespace Emulator
             CARRY = (ushort)(temp & 0x80);
         }
 
-        private void Instruction_RRC()
+        public void Instruction_RRC()
         {
             SetA((ushort)((A >> 1) | (A << 7)));
             CARRY = (ushort)(A & BIT7);
         }
 
-        private void Instruction_RAR()
+        public void Instruction_RAR()
         {
             ushort temp = A;
             SetA((ushort)(A >> 1));
@@ -1126,7 +1126,7 @@ namespace Emulator
             CARRY = (ushort)(temp & 1);
         }
 
-        private void Instruction_AND(byte m_byte)
+        public void Instruction_AND(byte m_byte)
         {
             switch (m_byte)
             {
@@ -1161,7 +1161,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_ADD(byte m_byte)
+        public void Instruction_ADD(byte m_byte)
         {
             switch (m_byte)
             {
@@ -1196,7 +1196,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_STA(byte m_byte)
+        public void Instruction_STA(byte m_byte)
         {
             switch (m_byte)
             {
@@ -1213,7 +1213,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_XOR(byte m_byte)
+        public void Instruction_XOR(byte m_byte)
         {
             switch (m_byte)
             {
@@ -1248,27 +1248,27 @@ namespace Emulator
             }
         }
 
-        private void Instruction_DI()
+        public void Instruction_DI()
         {
             INTERRUPT = false;
         }
 
-        private void Instruction_EI()
+        public void Instruction_EI()
         {
             INTERRUPT = true;
         }
 
-        private void Instruction_STC()
+        public void Instruction_STC()
         {
             CARRY = 1;
         }
 
-        private void Instruction_CMC()
+        public void Instruction_CMC()
         {
             CARRY = 0;
         }
 
-        private void Instruction_OR(byte m_byte)
+        public void Instruction_OR(byte m_byte)
         {
             switch (m_byte)
             {
@@ -1303,7 +1303,7 @@ namespace Emulator
             }
         }
 
-        private void Instruction_SUB(byte m_byte)
+        public void Instruction_SUB(byte m_byte)
         {
             switch (m_byte)
             {
@@ -1338,19 +1338,19 @@ namespace Emulator
             }
         }
 
-        private void Instruction_LHLD()
+        public void Instruction_LHLD()
         {
             ushort immediate = FetchRomShort();
             SetHL(ReadShort(immediate));
         }
 
-        private void Instruction_SHLD()
+        public void Instruction_SHLD()
         {
             ushort immediate = FetchRomShort();
             WriteShort(immediate, HL);
         }
 
-        private void Instruction_SBBI()
+        public void Instruction_SBBI()
         {
             byte immediate = FetchRomByte();
             byte carryvalue = 0;
@@ -1361,7 +1361,7 @@ namespace Emulator
             PerformByteSub(immediate, carryvalue);
         }
 
-        private void Instruction_DAA()
+        public void Instruction_DAA()
         {
             if (((A & 0x0F) > 9) || Convert.ToBoolean(HALFCARRY))
             {
@@ -1385,12 +1385,12 @@ namespace Emulator
             setFlagZeroSign();
         }
 
-        private void Instruction_CMA()
+        public void Instruction_CMA()
         {
             SetA((ushort)(A ^ 0xff));
         }
 
-        private void Instruction_ADC(byte m_byte)
+        public void Instruction_ADC(byte m_byte)
         {
             byte carryvalue = 0;
             if (Convert.ToBoolean(CARRY))
@@ -1430,81 +1430,81 @@ namespace Emulator
             }
         }
 
-        private void SetA(ushort inByte)
+        public void SetA(ushort inByte)
         {
             A = (ushort)(inByte & 0xFF);
         }
 
-        private void SetB(int inByte)
+        public void SetB(int inByte)
         {
             B = (ushort)(inByte & 0xFF);
             BC = (ushort)((B << 8) | C);
         }
 
-        private void SetC(int inByte)
+        public void SetC(int inByte)
         {
             C = (ushort)(inByte & 0xFF);
             BC = (ushort)((B << 8) | C);
         }
 
-        private void SetD(int inByte)
+        public void SetD(int inByte)
         {
             D = (ushort)inByte;
             DE = (ushort)((D << 8) + E);
         }
 
-        private void SetE(int inByte)
+        public void SetE(int inByte)
         {
             E = (byte)inByte;
             DE = (ushort)((D << 8) + E);
         }
 
-        private void SetH(int inByte)
+        public void SetH(int inByte)
         {
             H = (ushort)(inByte);
             HL = (ushort)((H << 8) + L);
         }
 
-        private void SetL(int inByte)
+        public void SetL(int inByte)
         {
             L = (ushort)inByte;
             HL = (ushort)((H << 8) + L);
         }
 
-        private void SetBC(int inShort)
+        public void SetBC(int inShort)
         {
             BC = (ushort)inShort;
             B = (ushort)(BC >> 8);
             C = (ushort)(BC & 0xFF);
         }
 
-        private void SetDE(int inShort)
+        public void SetDE(int inShort)
         {
             DE = (ushort)inShort;
             D = (ushort)(DE >> 8);
             E = (ushort)(DE & 0xFF);
         }
 
-        private void SetHL(int inShort)
+        public void SetHL(int inShort)
         {
             HL = (ushort)inShort;
             H = (ushort)(HL >> 8);
             L = (ushort)(HL & 0xFF);
         }
 
-        private void SetSP(int inShort)
+        public void SetSP(int inShort)
         {
             SP = (ushort)inShort;
         }
 
-        private byte FetchRomByte()
+        public byte FetchRomByte()
         {
             byte value = m_rom[m_PC];
             m_PC += 1;
             return value;
         }
 
-        private ushort FetchRomShort()
+        public ushort FetchRomShort()
         {
             byte[] bytes = new byte[2];
             bytes[0] = m_rom[m_PC + 0];
@@ -1513,51 +1513,50 @@ namespace Emulator
             return BitConverter.ToUInt16(bytes, 0);
         }
 
-        private byte ReadByte(int count)
+        public byte ReadByte(int count)
         {
             return m_rom[count];
         }
 
-        private ushort ReadShort(ushort inAddress)
+        public ushort ReadShort(ushort inAddress)
         {
             return (ushort)((m_rom[inAddress + 1] << 8) + (m_rom[inAddress + 0]));
         }
 
-        private void WriteShort(ushort inAddress, ushort inWord)
+        public void WriteShort(ushort inAddress, ushort inWord)
         {
             m_rom[inAddress + 1] = (byte)(inWord >> 8);
             m_rom[inAddress + 0] = (byte)(inWord);
         }
 
-        private void WriteByte(ushort inAddress, ushort inByte)
+        public void WriteByte(ushort inAddress, ushort inByte)
         {
             m_rom[inAddress] = (byte)(inByte);
         }
 
-        private void StackPush(ushort inValue)
+        public void StackPush(ushort inValue)
         {
             SP -= 2;
             WriteShort(SP, inValue);
         }
 
-        private ushort StackPop()
+        public ushort StackPop()
         {
             ushort temp = ReadShort(SP);
             SP += 2;
             return temp;
         }
 
-        private ushort PerformDec(ushort inSource)
+        public ushort PerformDec(ushort inSource)
         {
             ushort value = (ushort)((inSource - 1) & 0xFF);
             HALFCARRY = Convert.ToUInt16((value & 0x0F) == 0);
-            bool zeroTest = Convert.ToBoolean((value & 255));
             ZERO = Convert.ToUInt16((value & 255) == 0);
             SIGN = (ushort)(value & 128);
             return value;
         }
 
-        private ushort PerformInc(ushort inSource)
+        public ushort PerformInc(ushort inSource)
         {
             ushort value = (ushort)(inSource + 1);
             HALFCARRY = Convert.ToUInt16((value & 0xF) < 0 || (value & 0xF) > 0);
@@ -1566,13 +1565,13 @@ namespace Emulator
             return value;
         }
 
-        private void setFlagZeroSign()
+        public void setFlagZeroSign()
         {
             ZERO = Convert.ToUInt16(A == 0);
             SIGN = (ushort)(A & 128);
         }
 
-        private void PerformAnd(ushort inValue)
+        public void PerformAnd(ushort inValue)
         {
             SetA((ushort)(A & inValue));
             CARRY = 0;
@@ -1580,7 +1579,7 @@ namespace Emulator
             setFlagZeroSign();
         }
 
-        private void PerformXor(ushort inValue)
+        public void PerformXor(ushort inValue)
         {
             SetA((ushort)(A ^ inValue));
             CARRY = 0;
@@ -1588,7 +1587,7 @@ namespace Emulator
             setFlagZeroSign();
         }
 
-        private void PerformOr(ushort inValue)
+        public void PerformOr(ushort inValue)
         {
             SetA((ushort)(A | inValue));
             CARRY = 0;
@@ -1596,7 +1595,7 @@ namespace Emulator
             setFlagZeroSign();
         }
 
-        private void PerformByteAdd(ushort inValue, short inCarryValue)
+        public void PerformByteAdd(ushort inValue, short inCarryValue)
         {
             int value = A + inValue + inCarryValue;
             HALFCARRY = (ushort)((A ^ inValue ^ value) & 0x10);
@@ -1614,7 +1613,7 @@ namespace Emulator
             setFlagZeroSign();
         }
 
-        private void PerformByteSub(ushort inValue, ushort inCarryValue)
+        public void PerformByteSub(ushort inValue, ushort inCarryValue)
         {
             byte value = (byte)(A - inValue - inCarryValue);
 
@@ -1631,10 +1630,10 @@ namespace Emulator
             setFlagZeroSign();
         }
 
-        private void PerformCompSub(byte inValue)
+        public void PerformCompSub(byte inValue)
         {
-            var value = (this.A - inValue) & 0xFF;
-            if ((value >= this.A) && Convert.ToBoolean(inValue))
+            var value = (A - inValue) & 0xFF;
+            if ((value >= A) && Convert.ToBoolean(inValue))
             {
                 CARRY = inValue;
             }
@@ -1649,14 +1648,14 @@ namespace Emulator
         }
 
 
-        private void AddHL(ushort inValue)
+        public void AddHL(ushort inValue)
         {
             int value = HL + inValue;
             SetHL(value);
             CARRY = Convert.ToUInt16(value > 65535);
         }
 
-        private void Reset()
+        public void Reset()
         {
             m_PC = 0;
             A = 0;
