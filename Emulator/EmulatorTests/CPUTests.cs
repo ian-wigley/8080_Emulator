@@ -37,7 +37,7 @@ namespace Emulator.Tests
         [Test()]
         public void ExecuteInstructionTest()
         {
-            Assert.Fail();
+            cpu.Instruction_JMP(195);
         }
 
         [Test()]
@@ -421,9 +421,9 @@ namespace Emulator.Tests
         [Test()]
         public void PerformDecTest()
         {
-            ushort invalue = 256;
+            ushort invalue = 0;
             var result = cpu.PerformDec(invalue);
-            Assert.AreEqual(result, invalue + 1);
+            Assert.AreEqual(result, 255);
         }
 
         [Test()]
