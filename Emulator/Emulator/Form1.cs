@@ -63,8 +63,7 @@ namespace Emulator
 
         bool IsApplicationIdle()
         {
-            Message result;
-            return !PeekMessage(out result, IntPtr.Zero, 0, 0, 0);
+            return !PeekMessage(out Message result, IntPtr.Zero, 0, 0, 0);
         }
 
         void HandleApplicationIdle(object sender, EventArgs e)
@@ -98,19 +97,26 @@ namespace Emulator
                 RestoreDirectory = true
             };
 
+            string tempString = "";
+
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 fileName = openFileDialog.FileName;
                 try
                 {
+
                     using (BinaryReader b = new BinaryReader(File.Open(fileName, FileMode.Open)))
                     {
                         // Read the input stream & display the contents
                         while (b.BaseStream.Position < b.BaseStream.Length)
                         {
                             rom.Add(b.ReadByte());
+                            // tempString += b.ReadByte() + ",";
                         }
                     }
+
+                    // File.WriteAllText("Rom.csv", tempString);
+
                 }
                 catch (Exception ex)
                 {
@@ -118,12 +124,12 @@ namespace Emulator
                 }
                 finally
                 {
-                    initialiseComponents();
+                    InitialiseComponents();
                 }
             }
         }
 
-        private void initialiseComponents()
+        private void InitialiseComponents()
         {
             int start = rom.Count;
             int end = rom.Count * 2;
@@ -154,7 +160,7 @@ namespace Emulator
         {
         }
 
-        private void setPixel(byte[] imagedata, int x, int y, uint color)
+        private void SetPixel(byte[] imagedata, int x, int y, uint color)
         {
             var i = (y * (width | 0) + x) * 4;
             imagedata[i++] = (byte)((color >> 16) & 0xFF);
