@@ -6,28 +6,30 @@ namespace Emulator
 {
     public class CPU
     {
-        public List<byte> m_rom;
-        public int m_PC;//Program Counter: This is the current instruction pointer. 16-bit register.
-        public ushort SP;// Stack Pointer. 16-bit register
-        public ushort A;// Accumulator. 8-bit register
-        public ushort B;// Register B. 8-bit register
-        public ushort C;// Register C. 8-bit register
-        public ushort D;// Register D. 8-bit register
-        public ushort E;// Register E. 8-bit register
-        public ushort H;// Register H. 8-bit register
-        public ushort L;// Register L. 8-bit register
-        public ushort BC;// Virtual register BC (16-bit) combination of registers B and C
-        public ushort DE;// Virtual register DE (16-bit) combination of registers D and E
-        public ushort HL;// Virtual register HL (16-bit) combination of registers H and L
+        public List<byte> rom;
+
+        public int m_PC;  // Program Counter: This is the current instruction pointer. 16-bit register.
+
+        public ushort SP; // Stack Pointer. 16-bit register
+        public ushort A;  // Accumulator. 8-bit register
+        public ushort B;  // Register B. 8-bit register
+        public ushort C;  // Register C. 8-bit register
+        public ushort D;  // Register D. 8-bit register
+        public ushort E;  // Register E. 8-bit register
+        public ushort H;  // Register H. 8-bit register
+        public ushort L;  // Register L. 8-bit register
+        public ushort BC; // Virtual register BC (16-bit) combination of registers B and C
+        public ushort DE; // Virtual register DE (16-bit) combination of registers D and E
+        public ushort HL; // Virtual register HL (16-bit) combination of registers H and L
 
         public ushort SIGN = 0;        // Sign flag
         public ushort ZERO = 0;        // Zero flag
-        public ushort HALFCARRY = 0;   //Half-carry (or Auxiliary Carry) flag
-        public bool PARITY = false;    //Parity flag
-        public ushort CARRY = 0;       //Carry flag
+        public ushort CARRY = 0;       // Carry flag
+        public ushort HALFCARRY = 0;   // Half-carry (or Auxiliary Carry) flag
 
-        public bool INTERRUPT = false; //Interrupt Enabled flag
-        public bool CRASHED;           //Special flag that tells if the CPU is currently crashed (stopped)
+        public bool PARITY = false;    // Parity flag
+        public bool INTERRUPT = false; // Interrupt Enabled flag
+        public bool CRASHED = false;   // Special flag that tells if the CPU is currently crashed (stopped)
 
         public int instruction_per_frame = 4000; // Approximate real machine speed
 
@@ -42,21 +44,21 @@ namespace Emulator
         public byte BIT6 = 64;
         public byte BIT7 = 128;
 
-        public ushort m_source = 0;
-        public ushort m_value = 0;
+        public ushort source = 0;
+        public ushort value = 0;
         public byte m_byte = 0;
 
-        public int m_instructionCounter = 0;
+        public int instructionCounter = 0;
 
-        public IO m_io;
-        public Label m_label;
+        public IO io;
+        public Label label;
 
         public CPU(List<byte> rom, IO io, Label label)
         {
             m_PC = 0;
-            m_rom = rom;
-            m_io = io;
-            m_label = label;
+            this.rom = rom;
+            this.io = io;
+            this.label = label;
             half_instruction_per_frame = instruction_per_frame / 2;
             Reset();
         }
@@ -402,12 +404,12 @@ namespace Emulator
                         break;
                     default:
                         CRASHED = true;
-                        MessageBox.Show("Emulator Crashed @ instruction : " + m_instructionCounter.ToString() + " " + m_byte.ToString());
+                        MessageBox.Show("Emulator Crashed @ instruction : " + instructionCounter.ToString() + " " + m_byte.ToString());
                         break;
                 }
 
-                m_instructionCounter++;
-                if (m_instructionCounter >= half_instruction_per_frame)
+                instructionCounter++;
+                if (instructionCounter >= half_instruction_per_frame)
                 {
 
                     if (INTERRUPT)
@@ -423,7 +425,7 @@ namespace Emulator
                         }
                     }
                     interrupt_alternate = 1 - interrupt_alternate;
-                    m_instructionCounter = 0;
+                    instructionCounter = 0;
                 }
             }
         }
@@ -560,16 +562,16 @@ namespace Emulator
             switch (m_byte)
             {
                 case 0x0a:
-                    m_source = BC;
+                    source = BC;
                     break;
                 case 0x1a:
-                    m_source = DE;
+                    source = DE;
                     break;
                 case 0x3a:
-                    m_source = FetchRomShort();
+                    source = FetchRomShort();
                     break;
             }
-            SetA(ReadByte(m_source));
+            SetA(ReadByte(source));
         }
 
         public void Instruction_MOVHL(byte m_byte)
@@ -907,34 +909,34 @@ namespace Emulator
             switch (m_byte)
             {
                 case 0xbf:
-                    m_value = A;
+                    value = A;
                     break;
                 case 0xb8:
-                    m_value = B;
+                    value = B;
                     break;
                 case 0xb9:
-                    m_value = C;
+                    value = C;
                     break;
                 case 0xba:
-                    m_value = D;
+                    value = D;
                     break;
                 case 0xbb:
-                    m_value = E;
+                    value = E;
                     break;
                 case 0xbc:
-                    m_value = H;
+                    value = H;
                     break;
                 case 0xbd:
-                    m_value = L;
+                    value = L;
                     break;
                 case 0xbe:
-                    m_value = ReadByte(HL);
+                    value = ReadByte(HL);
                     break;
                 case 0xfe:
-                    m_value = FetchRomByte();
+                    value = FetchRomByte();
                     break;
             }
-            PerformCompSub((byte)m_value);
+            PerformCompSub((byte)value);
         }
 
         public void Instruction_PUSH(byte m_byte)
@@ -942,62 +944,62 @@ namespace Emulator
             switch (m_byte)
             {
                 case 0xc5:
-                    m_value = BC;
+                    value = BC;
                     break;
                 case 0xd5:
-                    m_value = DE;
+                    value = DE;
                     break;
                 case 0xe5:
-                    m_value = HL;
+                    value = HL;
                     break;
                 case 0xf5:
-                    m_value = (ushort)(A << 8);
+                    value = (ushort)(A << 8);
                     if (Convert.ToBoolean(SIGN))
                     {
-                        m_value = (ushort)(m_value | BIT7);
+                        value = (ushort)(value | BIT7);
                     }
                     if (Convert.ToBoolean(ZERO))
                     {
-                        m_value = (ushort)(m_value | BIT6);
+                        value = (ushort)(value | BIT6);
                     }
                     if (INTERRUPT)
                     {
-                        m_value = (ushort)(m_value | BIT5);
+                        value = (ushort)(value | BIT5);
                     }
                     if (Convert.ToBoolean(HALFCARRY))
                     {
-                        m_value = (ushort)(m_value | BIT4);
+                        value = (ushort)(value | BIT4);
                     }
                     if (Convert.ToBoolean(CARRY))
                     {
-                        m_value = (ushort)(m_value | BIT0);
+                        value = (ushort)(value | BIT0);
                     }
                     break;
             }
-            StackPush(m_value);
+            StackPush(value);
         }
 
         public void Instruction_POP(byte m_byte)
         {
-            m_value = StackPop();
+            value = StackPop();
             switch (m_byte)
             {
                 case 0xc1:
-                    SetBC(m_value);
+                    SetBC(value);
                     break;
                 case 0xd1:
-                    SetDE(m_value);
+                    SetDE(value);
                     break;
                 case 0xe1:
-                    SetHL(m_value);
+                    SetHL(value);
                     break;
                 case 0xf1:
-                    A = (byte)(m_value >> 8);
-                    SIGN = (ushort)(m_value & 0x80);
-                    ZERO = (ushort)(m_value & 0x40);
-                    INTERRUPT = Convert.ToBoolean(m_value & 0x20);
-                    HALFCARRY = (ushort)(m_value & BIT4);
-                    CARRY = (ushort)(m_value & BIT0);
+                    A = (byte)(value >> 8);
+                    SIGN = (ushort)(value & 0x80);
+                    ZERO = (ushort)(value & 0x40);
+                    INTERRUPT = Convert.ToBoolean(value & 0x20);
+                    HALFCARRY = (ushort)(value & BIT4);
+                    CARRY = (ushort)(value & BIT0);
                     break;
             }
         }
@@ -1041,13 +1043,13 @@ namespace Emulator
         public void Instruction_OUTP()
         {
             byte port = FetchRomByte();
-            m_io.OutputPort(port, (byte)A);
+            io.OutputPort(port, (byte)A);
         }
 
         public void Instruction_INP()
         {
             byte port = FetchRomByte();
-            SetA(m_io.InputPort(port));
+            SetA(io.InputPort(port));
         }
 
         public void Instruction_PCHL()
@@ -1499,7 +1501,7 @@ namespace Emulator
 
         public byte FetchRomByte()
         {
-            byte value = m_rom[m_PC];
+            byte value = rom[m_PC];
             m_PC += 1;
             return value;
         }
@@ -1507,31 +1509,31 @@ namespace Emulator
         public ushort FetchRomShort()
         {
             byte[] bytes = new byte[2];
-            bytes[0] = m_rom[m_PC + 0];
-            bytes[1] = m_rom[m_PC + 1];
+            bytes[0] = rom[m_PC + 0];
+            bytes[1] = rom[m_PC + 1];
             m_PC += 2;
             return BitConverter.ToUInt16(bytes, 0);
         }
 
         public byte ReadByte(int count)
         {
-            return m_rom[count];
+            return rom[count];
         }
 
         public ushort ReadShort(ushort inAddress)
         {
-            return (ushort)((m_rom[inAddress + 1] << 8) + (m_rom[inAddress + 0]));
+            return (ushort)((rom[inAddress + 1] << 8) + (rom[inAddress + 0]));
         }
 
         public void WriteShort(ushort inAddress, ushort inWord)
         {
-            m_rom[inAddress + 1] = (byte)(inWord >> 8);
-            m_rom[inAddress + 0] = (byte)(inWord);
+            rom[inAddress + 1] = (byte)(inWord >> 8);
+            rom[inAddress + 0] = (byte)(inWord);
         }
 
         public void WriteByte(ushort inAddress, ushort inByte)
         {
-            m_rom[inAddress] = (byte)(inByte);
+            rom[inAddress] = (byte)(inByte);
         }
 
         public void StackPush(ushort inValue)
