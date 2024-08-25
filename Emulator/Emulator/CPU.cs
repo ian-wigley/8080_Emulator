@@ -8,7 +8,7 @@ namespace Emulator
     {
         public List<byte> rom;
 
-        public int m_PC;  // Program Counter: This is the current instruction pointer. 16-bit register.
+        public int PC;  // Program Counter: This is the current instruction pointer. 16-bit register.
 
         public ushort SP; // Stack Pointer. 16-bit register
         public ushort A;  // Accumulator. 8-bit register
@@ -49,13 +49,14 @@ namespace Emulator
         public byte m_byte = 0;
 
         public int instructionCounter = 0;
+        public int iteration = 0;
 
         public IO io;
         public Label label;
 
         public CPU(List<byte> rom, IO io, Label label)
         {
-            m_PC = 0;
+            PC = 0;
             this.rom = rom;
             this.io = io;
             this.label = label;
@@ -68,6 +69,11 @@ namespace Emulator
             for (int i = 0; i < instruction_per_frame; i++)
             {
                 ExecuteInstruction();
+            }
+
+            if (!CRASHED)
+            {
+                iteration += 1;
             }
         }
 
@@ -434,8 +440,8 @@ namespace Emulator
         {
             // Call the interrupt by pushing current PC on the stack and then jump to interrupt address
             INTERRUPT = false;
-            StackPush((ushort)m_PC);
-            m_PC = inAddress;
+            StackPush((ushort)PC);
+            PC = inAddress;
         }
 
         public void NOP()
@@ -474,7 +480,7 @@ namespace Emulator
             }
             if (m_condition)
             {
-                m_PC = data16;
+                PC = data16;
             }
         }
 
@@ -552,8 +558,8 @@ namespace Emulator
             }
             if (m_condition)
             {
-                StackPush((ushort)m_PC);
-                m_PC = data16;
+                StackPush((ushort)PC);
+                PC = data16;
             }
         }
 
@@ -725,7 +731,7 @@ namespace Emulator
             }
             if (m_condition)
             {
-                m_PC = StackPop();
+                PC = StackPop();
             }
         }
 
@@ -1054,7 +1060,7 @@ namespace Emulator
 
         public void Instruction_PCHL()
         {
-            m_PC = HL;
+            PC = HL;
         }
 
         public void Instruction_RST(byte m_byte)
@@ -1087,8 +1093,8 @@ namespace Emulator
                     address = 0x38;
                     break;
             }
-            StackPush((ushort)m_PC);
-            m_PC = address;
+            StackPush((ushort)PC);
+            PC = address;
         }
 
         public void Instruction_RLC()
@@ -1501,17 +1507,17 @@ namespace Emulator
 
         public byte FetchRomByte()
         {
-            byte value = rom[m_PC];
-            m_PC += 1;
+            byte value = rom[PC];
+            PC += 1;
             return value;
         }
 
         public ushort FetchRomShort()
         {
             byte[] bytes = new byte[2];
-            bytes[0] = rom[m_PC + 0];
-            bytes[1] = rom[m_PC + 1];
-            m_PC += 2;
+            bytes[0] = rom[PC + 0];
+            bytes[1] = rom[PC + 1];
+            PC += 2;
             return BitConverter.ToUInt16(bytes, 0);
         }
 
@@ -1659,7 +1665,7 @@ namespace Emulator
 
         public void Reset()
         {
-            m_PC = 0;
+            PC = 0;
             A = 0;
             BC = 0;
             DE = 0;
