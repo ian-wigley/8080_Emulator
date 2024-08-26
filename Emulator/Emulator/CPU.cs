@@ -8,7 +8,7 @@ namespace Emulator
     {
         public List<byte> rom;
 
-        public int PC;  // Program Counter: This is the current instruction pointer. 16-bit register.
+        public int PC;    // Program Counter: This is the current instruction pointer. 16-bit register.
 
         public ushort SP; // Stack Pointer. 16-bit register
         public ushort A;  // Accumulator. 8-bit register
@@ -33,10 +33,6 @@ namespace Emulator
 
         public int instruction_per_frame = 4000; // Approximate real machine speed
 
-        // Interrupt handling
-        public int interrupt_alternate = 0;
-        public int half_instruction_per_frame = 0;
-
         // Additional debug fields, not used by CPU
         public byte BIT0 = 1;
         public byte BIT4 = 16;
@@ -44,9 +40,13 @@ namespace Emulator
         public byte BIT6 = 64;
         public byte BIT7 = 128;
 
+        // Interrupt handling
+        public int interrupt_alternate = 0;
+        public int half_instruction_per_frame = 0;
+
         public ushort source = 0;
         public ushort value = 0;
-        public byte m_byte = 0;
+        public byte bytes = 0;
 
         public int instructionCounter = 0;
         public int iteration = 0;
@@ -82,9 +82,9 @@ namespace Emulator
         {
             if (!CRASHED)
             {
-                m_byte = FetchRomByte();
+                bytes = FetchRomByte();
 
-                switch (m_byte)
+                switch (bytes)
                 {
                     case 0x00:
                         NOP();
@@ -96,13 +96,13 @@ namespace Emulator
                     case 0xda:
                     case 0xf2:
                     case 0xfa:
-                        Instruction_JMP(m_byte);
+                        Instruction_JMP(bytes);
                         break;
                     case 0x01:
                     case 0x11:
                     case 0x21:
                     case 0x31:
-                        Instruction_LXI(m_byte);
+                        Instruction_LXI(bytes);
                         break;
                     case 0x3e:
                     case 0x06:
@@ -112,19 +112,19 @@ namespace Emulator
                     case 0x26:
                     case 0x2e:
                     case 0x36:
-                        Instruction_MVI(m_byte);
+                        Instruction_MVI(bytes);
                         break;
                     case 0xcd:
                     case 0xc4:
                     case 0xcc:
                     case 0xd4:
                     case 0xdc:
-                        Instruction_CALL(m_byte);
+                        Instruction_CALL(bytes);
                         break;
                     case 0x0a:
                     case 0x1a:
                     case 0x3a:
-                        Instruction_LDA(m_byte);
+                        Instruction_LDA(bytes);
                         break;
                     case 0x77:
                     case 0x70:
@@ -133,19 +133,19 @@ namespace Emulator
                     case 0x73:
                     case 0x74:
                     case 0x75:
-                        Instruction_MOVHL(m_byte);
+                        Instruction_MOVHL(bytes);
                         break;
                     case 0x03:
                     case 0x13:
                     case 0x23:
                     case 0x33:
-                        Instruction_INX(m_byte);
+                        Instruction_INX(bytes);
                         break;
                     case 0x0b:
                     case 0x1b:
                     case 0x2b:
                     case 0x3b:
-                        Instruction_DCX(m_byte);
+                        Instruction_DCX(bytes);
                         break;
                     case 0x3d:
                     case 0x05:
@@ -155,7 +155,7 @@ namespace Emulator
                     case 0x25:
                     case 0x2d:
                     case 0x35:
-                        Instruction_DEC(m_byte);
+                        Instruction_DEC(bytes);
                         break;
                     case 0x3c:
                     case 0x04:
@@ -165,14 +165,14 @@ namespace Emulator
                     case 0x24:
                     case 0x2c:
                     case 0x34:
-                        Instruction_INC(m_byte);
+                        Instruction_INC(bytes);
                         break;
                     case 0xc9:
                     case 0xc0:
                     case 0xc8:
                     case 0xd0:
                     case 0xd8:
-                        Instruction_RET(m_byte);
+                        Instruction_RET(bytes);
                         break;
                     case 0x7F:
                     case 0x78:
@@ -182,7 +182,7 @@ namespace Emulator
                     case 0x7C:
                     case 0x7D:
                     case 0x7E:
-                        Instruction_MOV(m_byte);
+                        Instruction_MOV(bytes);
                         break;
                     case 0x47:
                     case 0x40:
@@ -192,7 +192,7 @@ namespace Emulator
                     case 0x44:
                     case 0x45:
                     case 0x46:
-                        Instruction_MOV(m_byte);
+                        Instruction_MOV(bytes);
                         break;
                     case 0x4f:
                     case 0x48:
@@ -202,7 +202,7 @@ namespace Emulator
                     case 0x4c:
                     case 0x4d:
                     case 0x4e:
-                        Instruction_MOV(m_byte);
+                        Instruction_MOV(bytes);
                         break;
                     case 0x57:
                     case 0x50:
@@ -212,7 +212,7 @@ namespace Emulator
                     case 0x54:
                     case 0x55:
                     case 0x56:
-                        Instruction_MOV(m_byte);
+                        Instruction_MOV(bytes);
                         break;
                     case 0x5f:
                     case 0x58:
@@ -222,7 +222,7 @@ namespace Emulator
                     case 0x5c:
                     case 0x5d:
                     case 0x5e:
-                        Instruction_MOV(m_byte);
+                        Instruction_MOV(bytes);
                         break;
                     case 0x67:
                     case 0x60:
@@ -232,7 +232,7 @@ namespace Emulator
                     case 0x64:
                     case 0x65:
                     case 0x66:
-                        Instruction_MOV(m_byte);
+                        Instruction_MOV(bytes);
                         break;
                     case 0x6f:
                     case 0x68:
@@ -242,7 +242,7 @@ namespace Emulator
                     case 0x6c:
                     case 0x6d:
                     case 0x6e:
-                        Instruction_MOV(m_byte);
+                        Instruction_MOV(bytes);
                         break;
                     case 0xbf:
                     case 0xb8:
@@ -253,25 +253,25 @@ namespace Emulator
                     case 0xbd:
                     case 0xbe:
                     case 0xfe:
-                        Instruction_CMP(m_byte);
+                        Instruction_CMP(bytes);
                         break;
                     case 0xc5:
                     case 0xd5:
                     case 0xe5:
                     case 0xf5:
-                        Instruction_PUSH(m_byte);
+                        Instruction_PUSH(bytes);
                         break;
                     case 0xc1:
                     case 0xd1:
                     case 0xe1:
                     case 0xf1:
-                        Instruction_POP(m_byte);
+                        Instruction_POP(bytes);
                         break;
                     case 0x09:
                     case 0x19:
                     case 0x29:
                     case 0x39:
-                        Instruction_DAD(m_byte);
+                        Instruction_DAD(bytes);
                         break;
                     case 0xeb:
                         Instruction_XCHG();
@@ -296,7 +296,7 @@ namespace Emulator
                     case 0xef:
                     case 0xf7:
                     case 0xff:
-                        Instruction_RST(m_byte);
+                        Instruction_RST(bytes);
                         break;
                     case 0x07:
                         Instruction_RLC();
@@ -319,7 +319,7 @@ namespace Emulator
                     case 0xa5:
                     case 0xa6:
                     case 0xe6:
-                        Instruction_AND(m_byte);
+                        Instruction_AND(bytes);
                         break;
                     case 0x80:
                     case 0x81:
@@ -330,12 +330,12 @@ namespace Emulator
                     case 0x86:
                     case 0x87:
                     case 0xc6:
-                        Instruction_ADD(m_byte);
+                        Instruction_ADD(bytes);
                         break;
                     case 0x02:
                     case 0x12:
                     case 0x32:
-                        Instruction_STA(m_byte);
+                        Instruction_STA(bytes);
                         break;
                     case 0xaf:
                     case 0xa8:
@@ -346,7 +346,7 @@ namespace Emulator
                     case 0xad:
                     case 0xae:
                     case 0xee:
-                        Instruction_XOR(m_byte);
+                        Instruction_XOR(bytes);
                         break;
                     case 0xf3:
                         Instruction_DI();
@@ -369,7 +369,7 @@ namespace Emulator
                     case 0xb5:
                     case 0xb6:
                     case 0xf6:
-                        Instruction_OR(m_byte);
+                        Instruction_OR(bytes);
                         break;
                     case 0x97:
                     case 0x90:
@@ -380,7 +380,7 @@ namespace Emulator
                     case 0x95:
                     case 0x96:
                     case 0xd6:
-                        Instruction_SUB(m_byte);
+                        Instruction_SUB(bytes);
                         break;
                     case 0x2a:
                         Instruction_LHLD();
@@ -406,11 +406,11 @@ namespace Emulator
                     case 0x8d:
                     case 0x8e:
                     case 0xce:
-                        Instruction_ADC(m_byte);
+                        Instruction_ADC(bytes);
                         break;
                     default:
                         CRASHED = true;
-                        MessageBox.Show("Emulator Crashed @ instruction : " + instructionCounter.ToString() + " " + m_byte.ToString());
+                        MessageBox.Show("Emulator Crashed @ instruction : " + instructionCounter.ToString() + " " + bytes.ToString());
                         break;
                 }
 
@@ -449,12 +449,12 @@ namespace Emulator
             // No Operation - Do nothing !
         }
 
-        public void Instruction_JMP(byte m_byte)
+        public void Instruction_JMP(byte inByte)
         {
             ushort data16 = FetchRomShort();
             var m_condition = true;
 
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xc3:
                     // Do nothing apart from incrementing the Programme Counter
@@ -484,9 +484,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_LXI(byte m_byte)
+        public void Instruction_LXI(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x01:
                     SetBC(FetchRomShort());
@@ -503,9 +503,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_MVI(byte m_byte)
+        public void Instruction_MVI(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x3e:
                     SetA(FetchRomByte());
@@ -534,12 +534,12 @@ namespace Emulator
             }
         }
 
-        public void Instruction_CALL(byte m_byte)
+        public void Instruction_CALL(byte inByte)
         {
             ushort data16 = FetchRomShort();
             bool m_condition = true;
 
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xcd:
                     break;
@@ -563,9 +563,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_LDA(byte m_byte)
+        public void Instruction_LDA(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x0a:
                     source = BC;
@@ -580,9 +580,9 @@ namespace Emulator
             SetA(ReadByte(source));
         }
 
-        public void Instruction_MOVHL(byte m_byte)
+        public void Instruction_MOVHL(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x77:
                     WriteByte(HL, A);
@@ -608,9 +608,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_INX(byte m_byte)
+        public void Instruction_INX(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x03:
                     SetBC(BC + 1);
@@ -627,9 +627,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_DCX(byte m_byte)
+        public void Instruction_DCX(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x0b:
                     SetBC(BC - 1);
@@ -646,9 +646,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_DEC(byte m_byte)
+        public void Instruction_DEC(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x3d:
                     SetA(PerformDec(A));
@@ -677,9 +677,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_INC(byte m_byte)
+        public void Instruction_INC(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x3c:
                     SetA(PerformInc(A));
@@ -708,11 +708,11 @@ namespace Emulator
             }
         }
 
-        public void Instruction_RET(byte m_byte)
+        public void Instruction_RET(byte inByte)
         {
             bool m_condition = true;
 
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xc9:
                     break;
@@ -735,9 +735,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_MOV(byte m_byte)
+        public void Instruction_MOV(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x7F:
                     SetA(A);
@@ -910,9 +910,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_CMP(byte m_byte)
+        public void Instruction_CMP(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xbf:
                     value = A;
@@ -945,9 +945,9 @@ namespace Emulator
             PerformCompSub((byte)value);
         }
 
-        public void Instruction_PUSH(byte m_byte)
+        public void Instruction_PUSH(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xc5:
                     value = BC;
@@ -985,10 +985,10 @@ namespace Emulator
             StackPush(value);
         }
 
-        public void Instruction_POP(byte m_byte)
+        public void Instruction_POP(byte inByte)
         {
             value = StackPop();
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xc1:
                     SetBC(value);
@@ -1010,9 +1010,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_DAD(byte m_byte)
+        public void Instruction_DAD(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x09:
                     AddHL(BC);
@@ -1063,10 +1063,10 @@ namespace Emulator
             PC = HL;
         }
 
-        public void Instruction_RST(byte m_byte)
+        public void Instruction_RST(byte inByte)
         {
             ushort address = 0;
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xc7:
                     address = 0x00;
@@ -1134,9 +1134,9 @@ namespace Emulator
             CARRY = (ushort)(temp & 1);
         }
 
-        public void Instruction_AND(byte m_byte)
+        public void Instruction_AND(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xa7:
                     PerformAnd(A);
@@ -1169,9 +1169,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_ADD(byte m_byte)
+        public void Instruction_ADD(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x87:
                     PerformByteAdd(A, 0);
@@ -1204,9 +1204,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_STA(byte m_byte)
+        public void Instruction_STA(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x02:
                     WriteByte(BC, A);
@@ -1221,9 +1221,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_XOR(byte m_byte)
+        public void Instruction_XOR(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xaf:
                     PerformXor(A);
@@ -1276,9 +1276,9 @@ namespace Emulator
             CARRY = 0;
         }
 
-        public void Instruction_OR(byte m_byte)
+        public void Instruction_OR(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0xb7:
                     PerformOr(A);
@@ -1311,9 +1311,9 @@ namespace Emulator
             }
         }
 
-        public void Instruction_SUB(byte m_byte)
+        public void Instruction_SUB(byte inByte)
         {
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x97:
                     PerformByteSub(A, 0);
@@ -1398,14 +1398,14 @@ namespace Emulator
             SetA((ushort)(A ^ 0xff));
         }
 
-        public void Instruction_ADC(byte m_byte)
+        public void Instruction_ADC(byte inByte)
         {
             byte carryvalue = 0;
             if (Convert.ToBoolean(CARRY))
             {
                 carryvalue = 1;
             }
-            switch (m_byte)
+            switch (inByte)
             {
                 case 0x8f:
                     PerformByteAdd(A, carryvalue);
