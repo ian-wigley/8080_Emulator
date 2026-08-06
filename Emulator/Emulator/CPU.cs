@@ -6,32 +6,42 @@ namespace Emulator
 {
     public class CPU
     {
-        public List<byte> rom;
-
-        public int PC;    // Program Counter: This is the current instruction pointer. 16-bit register.
-
+        public int PC; // Program Counter: This is the current instruction pointer. 16-bit register.
         public ushort SP; // Stack Pointer. 16-bit register
-        public ushort A;  // Accumulator. 8-bit register
-        public ushort B;  // Register B. 8-bit register
-        public ushort C;  // Register C. 8-bit register
-        public ushort D;  // Register D. 8-bit register
-        public ushort E;  // Register E. 8-bit register
-        public ushort H;  // Register H. 8-bit register
-        public ushort L;  // Register L. 8-bit register
+        public ushort A; // Accumulator. 8-bit register
+        public ushort B; // Register B. 8-bit register
+        public ushort C; // Register C. 8-bit register
+        public ushort D; // Register D. 8-bit register
+        public ushort E; // Register E. 8-bit register
+        public ushort H; // Register H. 8-bit register
+        public ushort L; // Register L. 8-bit register
         public ushort BC; // Virtual register BC (16-bit) combination of registers B and C
         public ushort DE; // Virtual register DE (16-bit) combination of registers D and E
         public ushort HL; // Virtual register HL (16-bit) combination of registers H and L
+        public ushort SIGN; // Sign flag
+        public ushort ZERO; // Zero flag
+        public ushort CARRY; // Carry flag
+        public ushort HALFCARRY; // Half-carry (or Auxiliary Carry) flag
+        public bool PARITY; // Parity flag
+        public bool INTERRUPT; // Interrupt Enabled flag
+        
+        public bool CRASHED; // Special flag that tells if the CPU is currently crashed (stopped)
 
-        public ushort SIGN = 0;        // Sign flag
-        public ushort ZERO = 0;        // Zero flag
-        public ushort CARRY = 0;       // Carry flag
-        public ushort HALFCARRY = 0;   // Half-carry (or Auxiliary Carry) flag
-
-        public bool PARITY = false;    // Parity flag
-        public bool INTERRUPT = false; // Interrupt Enabled flag
-        public bool CRASHED = false;   // Special flag that tells if the CPU is currently crashed (stopped)
-
+        public byte bytes;
+        public int half_instruction_per_frame;
+        public int instructionCounter;
         public int instruction_per_frame = 4000; // Approximate real machine speed
+
+        // Interrupt handling
+        public int interrupt_alternate;
+
+        public IO io;
+        public int iteration;
+        public Label label;
+        public List<byte> rom;
+
+        public ushort source;
+        public ushort value;
 
         // Additional debug fields, not used by CPU
         public byte BIT0 = 1;
@@ -39,21 +49,7 @@ namespace Emulator
         public byte BIT5 = 32;
         public byte BIT6 = 64;
         public byte BIT7 = 128;
-
-        // Interrupt handling
-        public int interrupt_alternate = 0;
-        public int half_instruction_per_frame = 0;
-
-        public ushort source = 0;
-        public ushort value = 0;
-        public byte bytes = 0;
-
-        public int instructionCounter = 0;
-        public int iteration = 0;
-
-        public IO io;
-        public Label label;
-
+        
         public CPU(List<byte> rom, IO io, Label label)
         {
             PC = 0;
@@ -66,373 +62,361 @@ namespace Emulator
 
         public void Run()
         {
-            for (int i = 0; i < instruction_per_frame; i++)
-            {
-                ExecuteInstruction();
-            }
+            for (var i = 0; i < instruction_per_frame; i++) ExecuteInstruction();
 
-            if (!CRASHED)
-            {
-                iteration += 1;
-            }
+            if (!CRASHED) iteration += 1;
         }
 
         // All opcodes are 1 byte wide
         public void ExecuteInstruction()
         {
-            if (!CRASHED)
+            if (CRASHED) return;
+            bytes = FetchRomByte();
+
+            switch (bytes)
             {
-                bytes = FetchRomByte();
+                case 0x00:
+                    NOP();
+                    break;
+                case 0xc3:
+                case 0xc2:
+                case 0xca:
+                case 0xd2:
+                case 0xda:
+                case 0xf2:
+                case 0xfa:
+                    Instruction_JMP(bytes);
+                    break;
+                case 0x01:
+                case 0x11:
+                case 0x21:
+                case 0x31:
+                    Instruction_LXI(bytes);
+                    break;
+                case 0x3e:
+                case 0x06:
+                case 0x0e:
+                case 0x16:
+                case 0x1e:
+                case 0x26:
+                case 0x2e:
+                case 0x36:
+                    Instruction_MVI(bytes);
+                    break;
+                case 0xcd:
+                case 0xc4:
+                case 0xcc:
+                case 0xd4:
+                case 0xdc:
+                    Instruction_CALL(bytes);
+                    break;
+                case 0x0a:
+                case 0x1a:
+                case 0x3a:
+                    Instruction_LDA(bytes);
+                    break;
+                case 0x77:
+                case 0x70:
+                case 0x71:
+                case 0x72:
+                case 0x73:
+                case 0x74:
+                case 0x75:
+                    Instruction_MOVHL(bytes);
+                    break;
+                case 0x03:
+                case 0x13:
+                case 0x23:
+                case 0x33:
+                    Instruction_INX(bytes);
+                    break;
+                case 0x0b:
+                case 0x1b:
+                case 0x2b:
+                case 0x3b:
+                    Instruction_DCX(bytes);
+                    break;
+                case 0x3d:
+                case 0x05:
+                case 0x0d:
+                case 0x15:
+                case 0x1d:
+                case 0x25:
+                case 0x2d:
+                case 0x35:
+                    Instruction_DEC(bytes);
+                    break;
+                case 0x3c:
+                case 0x04:
+                case 0x0c:
+                case 0x14:
+                case 0x1c:
+                case 0x24:
+                case 0x2c:
+                case 0x34:
+                    Instruction_INC(bytes);
+                    break;
+                case 0xc9:
+                case 0xc0:
+                case 0xc8:
+                case 0xd0:
+                case 0xd8:
+                    Instruction_RET(bytes);
+                    break;
+                case 0x7F:
+                case 0x78:
+                case 0x79:
+                case 0x7A:
+                case 0x7B:
+                case 0x7C:
+                case 0x7D:
+                case 0x7E:
+                    Instruction_MOV(bytes);
+                    break;
+                case 0x47:
+                case 0x40:
+                case 0x41:
+                case 0x42:
+                case 0x43:
+                case 0x44:
+                case 0x45:
+                case 0x46:
+                    Instruction_MOV(bytes);
+                    break;
+                case 0x4f:
+                case 0x48:
+                case 0x49:
+                case 0x4a:
+                case 0x4b:
+                case 0x4c:
+                case 0x4d:
+                case 0x4e:
+                    Instruction_MOV(bytes);
+                    break;
+                case 0x57:
+                case 0x50:
+                case 0x51:
+                case 0x52:
+                case 0x53:
+                case 0x54:
+                case 0x55:
+                case 0x56:
+                    Instruction_MOV(bytes);
+                    break;
+                case 0x5f:
+                case 0x58:
+                case 0x59:
+                case 0x5a:
+                case 0x5b:
+                case 0x5c:
+                case 0x5d:
+                case 0x5e:
+                    Instruction_MOV(bytes);
+                    break;
+                case 0x67:
+                case 0x60:
+                case 0x61:
+                case 0x62:
+                case 0x63:
+                case 0x64:
+                case 0x65:
+                case 0x66:
+                    Instruction_MOV(bytes);
+                    break;
+                case 0x6f:
+                case 0x68:
+                case 0x69:
+                case 0x6a:
+                case 0x6b:
+                case 0x6c:
+                case 0x6d:
+                case 0x6e:
+                    Instruction_MOV(bytes);
+                    break;
+                case 0xbf:
+                case 0xb8:
+                case 0xb9:
+                case 0xba:
+                case 0xbb:
+                case 0xbc:
+                case 0xbd:
+                case 0xbe:
+                case 0xfe:
+                    Instruction_CMP(bytes);
+                    break;
+                case 0xc5:
+                case 0xd5:
+                case 0xe5:
+                case 0xf5:
+                    Instruction_PUSH(bytes);
+                    break;
+                case 0xc1:
+                case 0xd1:
+                case 0xe1:
+                case 0xf1:
+                    Instruction_POP(bytes);
+                    break;
+                case 0x09:
+                case 0x19:
+                case 0x29:
+                case 0x39:
+                    Instruction_DAD(bytes);
+                    break;
+                case 0xeb:
+                    Instruction_XCHG();
+                    break;
+                case 0xe3:
+                    Instruction_XTHL();
+                    break;
+                case 0xd3:
+                    Instruction_OUTP();
+                    break;
+                case 0xdb:
+                    Instruction_INP();
+                    break;
+                case 0xe9:
+                    Instruction_PCHL();
+                    break;
+                case 0xc7:
+                case 0xcf:
+                case 0xd7:
+                case 0xdf:
+                case 0xe7:
+                case 0xef:
+                case 0xf7:
+                case 0xff:
+                    Instruction_RST(bytes);
+                    break;
+                case 0x07:
+                    Instruction_RLC();
+                    break;
+                case 0x17:
+                    Instruction_RAL();
+                    break;
+                case 0x0f:
+                    Instruction_RRC();
+                    break;
+                case 0x1f:
+                    Instruction_RAR();
+                    break;
+                case 0xa7:
+                case 0xa0:
+                case 0xa1:
+                case 0xa2:
+                case 0xa3:
+                case 0xa4:
+                case 0xa5:
+                case 0xa6:
+                case 0xe6:
+                    Instruction_AND(bytes);
+                    break;
+                case 0x80:
+                case 0x81:
+                case 0x82:
+                case 0x83:
+                case 0x84:
+                case 0x85:
+                case 0x86:
+                case 0x87:
+                case 0xc6:
+                    Instruction_ADD(bytes);
+                    break;
+                case 0x02:
+                case 0x12:
+                case 0x32:
+                    Instruction_STA(bytes);
+                    break;
+                case 0xaf:
+                case 0xa8:
+                case 0xa9:
+                case 0xaa:
+                case 0xab:
+                case 0xac:
+                case 0xad:
+                case 0xae:
+                case 0xee:
+                    Instruction_XOR(bytes);
+                    break;
+                case 0xf3:
+                    Instruction_DI();
+                    break;
+                case 0xfb:
+                    Instruction_EI();
+                    break;
+                case 0x37:
+                    Instruction_STC();
+                    break;
+                case 0x3f:
+                    Instruction_CMC();
+                    break;
+                case 0xb7:
+                case 0xb0:
+                case 0xb1:
+                case 0xb2:
+                case 0xb3:
+                case 0xb4:
+                case 0xb5:
+                case 0xb6:
+                case 0xf6:
+                    Instruction_OR(bytes);
+                    break;
+                case 0x97:
+                case 0x90:
+                case 0x91:
+                case 0x92:
+                case 0x93:
+                case 0x94:
+                case 0x95:
+                case 0x96:
+                case 0xd6:
+                    Instruction_SUB(bytes);
+                    break;
+                case 0x2a:
+                    Instruction_LHLD();
+                    break;
+                case 0x22:
+                    Instruction_SHLD();
+                    break;
+                case 0xde:
+                    Instruction_SBBI();
+                    break;
+                case 0x27:
+                    Instruction_DAA();
+                    break;
+                case 0x2f:
+                    Instruction_CMA();
+                    break;
+                case 0x8f:
+                case 0x88:
+                case 0x89:
+                case 0x8a:
+                case 0x8b:
+                case 0x8c:
+                case 0x8d:
+                case 0x8e:
+                case 0xce:
+                    Instruction_ADC(bytes);
+                    break;
+                default:
+                    CRASHED = true;
+                    MessageBox.Show("Emulator Crashed @ instruction : " + instructionCounter + " " + bytes);
+                    break;
+            }
 
-                switch (bytes)
+            instructionCounter++;
+            if (instructionCounter >= half_instruction_per_frame)
+            {
+                if (INTERRUPT)
                 {
-                    case 0x00:
-                        NOP();
-                        break;
-                    case 0xc3:
-                    case 0xc2:
-                    case 0xca:
-                    case 0xd2:
-                    case 0xda:
-                    case 0xf2:
-                    case 0xfa:
-                        Instruction_JMP(bytes);
-                        break;
-                    case 0x01:
-                    case 0x11:
-                    case 0x21:
-                    case 0x31:
-                        Instruction_LXI(bytes);
-                        break;
-                    case 0x3e:
-                    case 0x06:
-                    case 0x0e:
-                    case 0x16:
-                    case 0x1e:
-                    case 0x26:
-                    case 0x2e:
-                    case 0x36:
-                        Instruction_MVI(bytes);
-                        break;
-                    case 0xcd:
-                    case 0xc4:
-                    case 0xcc:
-                    case 0xd4:
-                    case 0xdc:
-                        Instruction_CALL(bytes);
-                        break;
-                    case 0x0a:
-                    case 0x1a:
-                    case 0x3a:
-                        Instruction_LDA(bytes);
-                        break;
-                    case 0x77:
-                    case 0x70:
-                    case 0x71:
-                    case 0x72:
-                    case 0x73:
-                    case 0x74:
-                    case 0x75:
-                        Instruction_MOVHL(bytes);
-                        break;
-                    case 0x03:
-                    case 0x13:
-                    case 0x23:
-                    case 0x33:
-                        Instruction_INX(bytes);
-                        break;
-                    case 0x0b:
-                    case 0x1b:
-                    case 0x2b:
-                    case 0x3b:
-                        Instruction_DCX(bytes);
-                        break;
-                    case 0x3d:
-                    case 0x05:
-                    case 0x0d:
-                    case 0x15:
-                    case 0x1d:
-                    case 0x25:
-                    case 0x2d:
-                    case 0x35:
-                        Instruction_DEC(bytes);
-                        break;
-                    case 0x3c:
-                    case 0x04:
-                    case 0x0c:
-                    case 0x14:
-                    case 0x1c:
-                    case 0x24:
-                    case 0x2c:
-                    case 0x34:
-                        Instruction_INC(bytes);
-                        break;
-                    case 0xc9:
-                    case 0xc0:
-                    case 0xc8:
-                    case 0xd0:
-                    case 0xd8:
-                        Instruction_RET(bytes);
-                        break;
-                    case 0x7F:
-                    case 0x78:
-                    case 0x79:
-                    case 0x7A:
-                    case 0x7B:
-                    case 0x7C:
-                    case 0x7D:
-                    case 0x7E:
-                        Instruction_MOV(bytes);
-                        break;
-                    case 0x47:
-                    case 0x40:
-                    case 0x41:
-                    case 0x42:
-                    case 0x43:
-                    case 0x44:
-                    case 0x45:
-                    case 0x46:
-                        Instruction_MOV(bytes);
-                        break;
-                    case 0x4f:
-                    case 0x48:
-                    case 0x49:
-                    case 0x4a:
-                    case 0x4b:
-                    case 0x4c:
-                    case 0x4d:
-                    case 0x4e:
-                        Instruction_MOV(bytes);
-                        break;
-                    case 0x57:
-                    case 0x50:
-                    case 0x51:
-                    case 0x52:
-                    case 0x53:
-                    case 0x54:
-                    case 0x55:
-                    case 0x56:
-                        Instruction_MOV(bytes);
-                        break;
-                    case 0x5f:
-                    case 0x58:
-                    case 0x59:
-                    case 0x5a:
-                    case 0x5b:
-                    case 0x5c:
-                    case 0x5d:
-                    case 0x5e:
-                        Instruction_MOV(bytes);
-                        break;
-                    case 0x67:
-                    case 0x60:
-                    case 0x61:
-                    case 0x62:
-                    case 0x63:
-                    case 0x64:
-                    case 0x65:
-                    case 0x66:
-                        Instruction_MOV(bytes);
-                        break;
-                    case 0x6f:
-                    case 0x68:
-                    case 0x69:
-                    case 0x6a:
-                    case 0x6b:
-                    case 0x6c:
-                    case 0x6d:
-                    case 0x6e:
-                        Instruction_MOV(bytes);
-                        break;
-                    case 0xbf:
-                    case 0xb8:
-                    case 0xb9:
-                    case 0xba:
-                    case 0xbb:
-                    case 0xbc:
-                    case 0xbd:
-                    case 0xbe:
-                    case 0xfe:
-                        Instruction_CMP(bytes);
-                        break;
-                    case 0xc5:
-                    case 0xd5:
-                    case 0xe5:
-                    case 0xf5:
-                        Instruction_PUSH(bytes);
-                        break;
-                    case 0xc1:
-                    case 0xd1:
-                    case 0xe1:
-                    case 0xf1:
-                        Instruction_POP(bytes);
-                        break;
-                    case 0x09:
-                    case 0x19:
-                    case 0x29:
-                    case 0x39:
-                        Instruction_DAD(bytes);
-                        break;
-                    case 0xeb:
-                        Instruction_XCHG();
-                        break;
-                    case 0xe3:
-                        Instruction_XTHL();
-                        break;
-                    case 0xd3:
-                        Instruction_OUTP();
-                        break;
-                    case 0xdb:
-                        Instruction_INP();
-                        break;
-                    case 0xe9:
-                        Instruction_PCHL();
-                        break;
-                    case 0xc7:
-                    case 0xcf:
-                    case 0xd7:
-                    case 0xdf:
-                    case 0xe7:
-                    case 0xef:
-                    case 0xf7:
-                    case 0xff:
-                        Instruction_RST(bytes);
-                        break;
-                    case 0x07:
-                        Instruction_RLC();
-                        break;
-                    case 0x17:
-                        Instruction_RAL();
-                        break;
-                    case 0x0f:
-                        Instruction_RRC();
-                        break;
-                    case 0x1f:
-                        Instruction_RAR();
-                        break;
-                    case 0xa7:
-                    case 0xa0:
-                    case 0xa1:
-                    case 0xa2:
-                    case 0xa3:
-                    case 0xa4:
-                    case 0xa5:
-                    case 0xa6:
-                    case 0xe6:
-                        Instruction_AND(bytes);
-                        break;
-                    case 0x80:
-                    case 0x81:
-                    case 0x82:
-                    case 0x83:
-                    case 0x84:
-                    case 0x85:
-                    case 0x86:
-                    case 0x87:
-                    case 0xc6:
-                        Instruction_ADD(bytes);
-                        break;
-                    case 0x02:
-                    case 0x12:
-                    case 0x32:
-                        Instruction_STA(bytes);
-                        break;
-                    case 0xaf:
-                    case 0xa8:
-                    case 0xa9:
-                    case 0xaa:
-                    case 0xab:
-                    case 0xac:
-                    case 0xad:
-                    case 0xae:
-                    case 0xee:
-                        Instruction_XOR(bytes);
-                        break;
-                    case 0xf3:
-                        Instruction_DI();
-                        break;
-                    case 0xfb:
-                        Instruction_EI();
-                        break;
-                    case 0x37:
-                        Instruction_STC();
-                        break;
-                    case 0x3f:
-                        Instruction_CMC();
-                        break;
-                    case 0xb7:
-                    case 0xb0:
-                    case 0xb1:
-                    case 0xb2:
-                    case 0xb3:
-                    case 0xb4:
-                    case 0xb5:
-                    case 0xb6:
-                    case 0xf6:
-                        Instruction_OR(bytes);
-                        break;
-                    case 0x97:
-                    case 0x90:
-                    case 0x91:
-                    case 0x92:
-                    case 0x93:
-                    case 0x94:
-                    case 0x95:
-                    case 0x96:
-                    case 0xd6:
-                        Instruction_SUB(bytes);
-                        break;
-                    case 0x2a:
-                        Instruction_LHLD();
-                        break;
-                    case 0x22:
-                        Instruction_SHLD();
-                        break;
-                    case 0xde:
-                        Instruction_SBBI();
-                        break;
-                    case 0x27:
-                        Instruction_DAA();
-                        break;
-                    case 0x2f:
-                        Instruction_CMA();
-                        break;
-                    case 0x8f:
-                    case 0x88:
-                    case 0x89:
-                    case 0x8a:
-                    case 0x8b:
-                    case 0x8c:
-                    case 0x8d:
-                    case 0x8e:
-                    case 0xce:
-                        Instruction_ADC(bytes);
-                        break;
-                    default:
-                        CRASHED = true;
-                        MessageBox.Show("Emulator Crashed @ instruction : " + instructionCounter.ToString() + " " + bytes.ToString());
-                        break;
+                    // There are two interrupts that occur every frame (address $08 and $10)
+                    if (interrupt_alternate == 0)
+                        CallInterrupt(0x08);
+                    else
+                        CallInterrupt(0x10);
                 }
 
-                instructionCounter++;
-                if (instructionCounter >= half_instruction_per_frame)
-                {
-
-                    if (INTERRUPT)
-                    {
-                        // There are two interrupts that occur every frame (address $08 and $10)
-                        if (interrupt_alternate == 0)
-                        {
-                            CallInterrupt(0x08);
-                        }
-                        else
-                        {
-                            CallInterrupt(0x10);
-                        }
-                    }
-                    interrupt_alternate = 1 - interrupt_alternate;
-                    instructionCounter = 0;
-                }
+                interrupt_alternate = 1 - interrupt_alternate;
+                instructionCounter = 0;
             }
         }
 
@@ -451,7 +435,7 @@ namespace Emulator
 
         public void Instruction_JMP(byte inByte)
         {
-            ushort data16 = FetchRomShort();
+            var data16 = FetchRomShort();
             var m_condition = true;
 
             switch (inByte)
@@ -478,10 +462,8 @@ namespace Emulator
                     m_condition = Convert.ToBoolean(SIGN);
                     break;
             }
-            if (m_condition)
-            {
-                PC = data16;
-            }
+
+            if (m_condition) PC = data16;
         }
 
         public void Instruction_LXI(byte inByte)
@@ -536,8 +518,8 @@ namespace Emulator
 
         public void Instruction_CALL(byte inByte)
         {
-            ushort data16 = FetchRomShort();
-            bool m_condition = true;
+            var data16 = FetchRomShort();
+            var m_condition = true;
 
             switch (inByte)
             {
@@ -556,6 +538,7 @@ namespace Emulator
                     m_condition = Convert.ToBoolean(CARRY);
                     break;
             }
+
             if (m_condition)
             {
                 StackPush((ushort)PC);
@@ -577,6 +560,7 @@ namespace Emulator
                     source = FetchRomShort();
                     break;
             }
+
             SetA(ReadByte(source));
         }
 
@@ -710,7 +694,7 @@ namespace Emulator
 
         public void Instruction_RET(byte inByte)
         {
-            bool m_condition = true;
+            var m_condition = true;
 
             switch (inByte)
             {
@@ -729,10 +713,8 @@ namespace Emulator
                     m_condition = Convert.ToBoolean(CARRY);
                     break;
             }
-            if (m_condition)
-            {
-                PC = StackPop();
-            }
+
+            if (m_condition) PC = StackPop();
         }
 
         public void Instruction_MOV(byte inByte)
@@ -942,6 +924,7 @@ namespace Emulator
                     value = FetchRomByte();
                     break;
             }
+
             PerformCompSub((byte)value);
         }
 
@@ -960,28 +943,14 @@ namespace Emulator
                     break;
                 case 0xf5:
                     value = (ushort)(A << 8);
-                    if (Convert.ToBoolean(SIGN))
-                    {
-                        value = (ushort)(value | BIT7);
-                    }
-                    if (Convert.ToBoolean(ZERO))
-                    {
-                        value = (ushort)(value | BIT6);
-                    }
-                    if (INTERRUPT)
-                    {
-                        value = (ushort)(value | BIT5);
-                    }
-                    if (Convert.ToBoolean(HALFCARRY))
-                    {
-                        value = (ushort)(value | BIT4);
-                    }
-                    if (Convert.ToBoolean(CARRY))
-                    {
-                        value = (ushort)(value | BIT0);
-                    }
+                    if (Convert.ToBoolean(SIGN)) value = (ushort)(value | BIT7);
+                    if (Convert.ToBoolean(ZERO)) value = (ushort)(value | BIT6);
+                    if (INTERRUPT) value = (ushort)(value | BIT5);
+                    if (Convert.ToBoolean(HALFCARRY)) value = (ushort)(value | BIT4);
+                    if (Convert.ToBoolean(CARRY)) value = (ushort)(value | BIT0);
                     break;
             }
+
             StackPush(value);
         }
 
@@ -1031,14 +1000,14 @@ namespace Emulator
 
         public void Instruction_XCHG()
         {
-            ushort temp = DE;
+            var temp = DE;
             SetDE(HL);
             SetHL(temp);
         }
 
         public void Instruction_XTHL()
         {
-            ushort temp = H;
+            var temp = H;
             SetH(ReadByte(SP + 1));
             WriteByte((ushort)(SP + 1), temp);
             temp = L;
@@ -1048,13 +1017,13 @@ namespace Emulator
 
         public void Instruction_OUTP()
         {
-            byte port = FetchRomByte();
+            var port = FetchRomByte();
             io.OutputPort(port, (byte)A);
         }
 
         public void Instruction_INP()
         {
-            byte port = FetchRomByte();
+            var port = FetchRomByte();
             SetA(io.InputPort(port));
         }
 
@@ -1093,6 +1062,7 @@ namespace Emulator
                     address = 0x38;
                     break;
             }
+
             StackPush((ushort)PC);
             PC = address;
         }
@@ -1100,19 +1070,16 @@ namespace Emulator
         public void Instruction_RLC()
         {
             SetA((ushort)((A << 1) | (A >> 7)));
-            var temp = (A & 1);
-            bool testCarry = Convert.ToBoolean(temp);
+            var temp = A & 1;
+            var testCarry = Convert.ToBoolean(temp);
             CARRY = (ushort)(A & BIT0);
         }
 
         public void Instruction_RAL()
         {
-            ushort temp = A;
+            var temp = A;
             SetA((ushort)(A << 1));
-            if (Convert.ToBoolean(CARRY))
-            {
-                SetA((ushort)(A | BIT0));
-            }
+            if (Convert.ToBoolean(CARRY)) SetA((ushort)(A | BIT0));
 
             CARRY = (ushort)(temp & 0x80);
         }
@@ -1125,12 +1092,9 @@ namespace Emulator
 
         public void Instruction_RAR()
         {
-            ushort temp = A;
+            var temp = A;
             SetA((ushort)(A >> 1));
-            if (Convert.ToBoolean(CARRY))
-            {
-                SetA((ushort)(A | BIT7));
-            }
+            if (Convert.ToBoolean(CARRY)) SetA((ushort)(A | BIT7));
             CARRY = (ushort)(temp & 1);
         }
 
@@ -1163,7 +1127,7 @@ namespace Emulator
                     PerformAnd(ReadByte(HL));
                     break;
                 case 0xe6:
-                    byte immediate = FetchRomByte();
+                    var immediate = FetchRomByte();
                     PerformAnd(immediate);
                     break;
             }
@@ -1198,7 +1162,7 @@ namespace Emulator
                     PerformByteAdd(ReadByte(HL), 0);
                     break;
                 case 0xc6:
-                    byte immediate = FetchRomByte();
+                    var immediate = FetchRomByte();
                     PerformByteAdd(immediate, 0);
                     break;
             }
@@ -1215,7 +1179,7 @@ namespace Emulator
                     WriteByte(DE, A);
                     break;
                 case 0x32:
-                    ushort immediate = FetchRomShort();
+                    var immediate = FetchRomShort();
                     WriteByte(immediate, A);
                     break;
             }
@@ -1250,7 +1214,7 @@ namespace Emulator
                     PerformXor(ReadByte(HL));
                     break;
                 case 0xee:
-                    byte immediate = FetchRomByte();
+                    var immediate = FetchRomByte();
                     PerformXor(immediate);
                     break;
             }
@@ -1305,7 +1269,7 @@ namespace Emulator
                     PerformOr(ReadByte(HL));
                     break;
                 case 0xf6:
-                    byte immediate = FetchRomByte();
+                    var immediate = FetchRomByte();
                     PerformOr(immediate);
                     break;
             }
@@ -1340,7 +1304,7 @@ namespace Emulator
                     PerformByteSub(ReadByte(HL), 0);
                     break;
                 case 0xd6:
-                    byte immediate = FetchRomByte();
+                    var immediate = FetchRomByte();
                     PerformByteSub(immediate, 0);
                     break;
             }
@@ -1348,30 +1312,27 @@ namespace Emulator
 
         public void Instruction_LHLD()
         {
-            ushort immediate = FetchRomShort();
+            var immediate = FetchRomShort();
             SetHL(ReadShort(immediate));
         }
 
         public void Instruction_SHLD()
         {
-            ushort immediate = FetchRomShort();
+            var immediate = FetchRomShort();
             WriteShort(immediate, HL);
         }
 
         public void Instruction_SBBI()
         {
-            byte immediate = FetchRomByte();
+            var immediate = FetchRomByte();
             byte carryvalue = 0;
-            if (Convert.ToBoolean(CARRY))
-            {
-                carryvalue = 1;
-            }
+            if (Convert.ToBoolean(CARRY)) carryvalue = 1;
             PerformByteSub(immediate, carryvalue);
         }
 
         public void Instruction_DAA()
         {
-            if (((A & 0x0F) > 9) || Convert.ToBoolean(HALFCARRY))
+            if ((A & 0x0F) > 9 || Convert.ToBoolean(HALFCARRY))
             {
                 A += 0x06;
                 HALFCARRY = 1;
@@ -1381,7 +1342,7 @@ namespace Emulator
                 HALFCARRY = 0;
             }
 
-            if ((A > 0x9F) || (Convert.ToBoolean(CARRY)))
+            if (A > 0x9F || Convert.ToBoolean(CARRY))
             {
                 A += 0x60;
                 CARRY = 1;
@@ -1390,6 +1351,7 @@ namespace Emulator
             {
                 CARRY = 0;
             }
+
             setFlagZeroSign();
         }
 
@@ -1401,10 +1363,7 @@ namespace Emulator
         public void Instruction_ADC(byte inByte)
         {
             byte carryvalue = 0;
-            if (Convert.ToBoolean(CARRY))
-            {
-                carryvalue = 1;
-            }
+            if (Convert.ToBoolean(CARRY)) carryvalue = 1;
             switch (inByte)
             {
                 case 0x8f:
@@ -1432,7 +1391,7 @@ namespace Emulator
                     PerformByteAdd(ReadByte(HL), carryvalue);
                     break;
                 case 0xce:
-                    byte immediate = FetchRomByte();
+                    var immediate = FetchRomByte();
                     PerformByteAdd(immediate, carryvalue);
                     break;
             }
@@ -1469,7 +1428,7 @@ namespace Emulator
 
         public void SetH(int inByte)
         {
-            H = (ushort)(inByte);
+            H = (ushort)inByte;
             HL = (ushort)((H << 8) + L);
         }
 
@@ -1507,14 +1466,14 @@ namespace Emulator
 
         public byte FetchRomByte()
         {
-            byte value = rom[PC];
+            var value = rom[PC];
             PC += 1;
             return value;
         }
 
         public ushort FetchRomShort()
         {
-            byte[] bytes = new byte[2];
+            var bytes = new byte[2];
             bytes[0] = rom[PC + 0];
             bytes[1] = rom[PC + 1];
             PC += 2;
@@ -1528,18 +1487,18 @@ namespace Emulator
 
         public ushort ReadShort(ushort inAddress)
         {
-            return (ushort)((rom[inAddress + 1] << 8) + (rom[inAddress + 0]));
+            return (ushort)((rom[inAddress + 1] << 8) + rom[inAddress + 0]);
         }
 
         public void WriteShort(ushort inAddress, ushort inWord)
         {
             rom[inAddress + 1] = (byte)(inWord >> 8);
-            rom[inAddress + 0] = (byte)(inWord);
+            rom[inAddress + 0] = (byte)inWord;
         }
 
         public void WriteByte(ushort inAddress, ushort inByte)
         {
-            rom[inAddress] = (byte)(inByte);
+            rom[inAddress] = (byte)inByte;
         }
 
         public void StackPush(ushort inValue)
@@ -1550,14 +1509,14 @@ namespace Emulator
 
         public ushort StackPop()
         {
-            ushort temp = ReadShort(SP);
+            var temp = ReadShort(SP);
             SP += 2;
             return temp;
         }
 
         public ushort PerformDec(ushort inSource)
         {
-            ushort value = (ushort)((inSource - 1) & 0xFF);
+            var value = (ushort)((inSource - 1) & 0xFF);
             HALFCARRY = Convert.ToUInt16((value & 0x0F) == 0);
             ZERO = Convert.ToUInt16((value & 255) == 0);
             SIGN = (ushort)(value & 128);
@@ -1566,7 +1525,7 @@ namespace Emulator
 
         public ushort PerformInc(ushort inSource)
         {
-            ushort value = (ushort)(inSource + 1);
+            var value = (ushort)(inSource + 1);
             HALFCARRY = Convert.ToUInt16((value & 0xF) < 0 || (value & 0xF) > 0);
             ZERO = Convert.ToUInt16((value & 255) == 0);
             SIGN = (ushort)(value & 128);
@@ -1605,34 +1564,26 @@ namespace Emulator
 
         public void PerformByteAdd(ushort inValue, short inCarryValue)
         {
-            int value = A + inValue + inCarryValue;
+            var value = A + inValue + inCarryValue;
             HALFCARRY = (ushort)((A ^ inValue ^ value) & 0x10);
-            SetA((ushort)(value));
+            SetA((ushort)value);
 
             if (value > 255)
-            {
                 CARRY = 1;
-            }
             else
-            {
                 CARRY = 0;
-            }
 
             setFlagZeroSign();
         }
 
         public void PerformByteSub(ushort inValue, ushort inCarryValue)
         {
-            byte value = (byte)(A - inValue - inCarryValue);
+            var value = (byte)(A - inValue - inCarryValue);
 
-            if ((value >= A) && (inValue | inCarryValue) > 0)
-            {
+            if (value >= A && (inValue | inCarryValue) > 0)
                 CARRY = 1;
-            }
             else
-            {
                 CARRY = 0;
-            }
             HALFCARRY = (ushort)((A ^ inValue ^ value) & 0x10);
             SetA(value);
             setFlagZeroSign();
@@ -1641,14 +1592,10 @@ namespace Emulator
         public void PerformCompSub(byte inValue)
         {
             var value = (A - inValue) & 0xFF;
-            if ((value >= A) && Convert.ToBoolean(inValue))
-            {
+            if (value >= A && Convert.ToBoolean(inValue))
                 CARRY = inValue;
-            }
             else
-            {
                 CARRY = 0;
-            }
 
             HALFCARRY = (ushort)((A ^ inValue ^ value) & 0x10);
             ZERO = Convert.ToUInt16(value == 0);
@@ -1658,7 +1605,7 @@ namespace Emulator
 
         public void AddHL(ushort inValue)
         {
-            int value = HL + inValue;
+            var value = HL + inValue;
             SetHL(value);
             CARRY = Convert.ToUInt16(value > 65535);
         }
