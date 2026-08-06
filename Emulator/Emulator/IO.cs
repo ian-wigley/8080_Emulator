@@ -2,38 +2,39 @@
 {
     public class IO
     {
+        private readonly byte BIT0 = 1;
+        private readonly byte BIT1 = 2;
+        private readonly byte BIT2 = 4;
+        private readonly byte BIT4 = 16;
+        private readonly byte BIT5 = 32;
+        private readonly byte BIT6 = 64;
+        private readonly byte BIT7 = 128;
+        private byte BIT3 = 8;
+        private byte IN_PORT1;
+
+        private byte IN_PORT2;
+
         // Input and output ports
         private byte OUT_PORT2;
         private byte OUT_PORT3;
-        private byte OUT_PORT4LO;
         private byte OUT_PORT4HI;
+        private byte OUT_PORT4LO;
         private byte OUT_PORT5;
-        private byte IN_PORT1 = 0;
-        private byte IN_PORT2 = 0;
+
+        private bool m_coin;
         private CPU m_cpu;
-
-        private byte BIT0 = 1;
-        private byte BIT1 = 2;
-        private byte BIT2 = 4;
-        private byte BIT3 = 8;
-        private byte BIT4 = 16;
-        private byte BIT5 = 32;
-        private byte BIT6 = 64;
-        private byte BIT7 = 128;
-
-        private bool m_coin = false;
-        private bool m_start = false;
-        private bool m_left = false;
-        private bool m_right = false;
-        private bool m_fire = false;
+        private bool m_fire;
+        private bool m_left;
+        private bool m_right;
+        private bool m_start;
         private bool m_tilt = false;
 
         public IO()
         {
             // Dipswitch: BIT0 and BIT1 controls starting number of life (from 3 to 6)
             // BIT7 prints additionnal coin message on intro screen
-            IN_PORT2 = (byte)(IN_PORT2 | (BIT0 | BIT1));
-            IN_PORT2 = (byte)(IN_PORT2 | (BIT7));
+            IN_PORT2 = (byte)(IN_PORT2 | BIT0 | BIT1);
+            IN_PORT2 = (byte)(IN_PORT2 | BIT7);
         }
 
 
@@ -45,8 +46,8 @@
         public void Update()
         {
             // Clear player input bits
-            IN_PORT1 = (byte)(IN_PORT1 & (~(BIT0 | BIT1 | BIT2 | BIT4 | BIT5 | BIT6)));
-            IN_PORT2 = (byte)(IN_PORT2 & (~(BIT2 | BIT4 | BIT5 | BIT6)));
+            IN_PORT1 = (byte)(IN_PORT1 & ~(BIT0 | BIT1 | BIT2 | BIT4 | BIT5 | BIT6));
+            IN_PORT2 = (byte)(IN_PORT2 & ~(BIT2 | BIT4 | BIT5 | BIT6));
 
             if (m_coin)
             {
@@ -142,10 +143,8 @@
                     {
                         // sound.StartUfo();
                     }
-                    else
-                    {
-                        // sound.StopUfo();
-                    }
+
+                    // sound.StopUfo();
                     //if ((value & BIT1) && !(OUT_PORT3 & BIT1)) { sound.PlayShot(); }
                     //if ((value & BIT2) && !(OUT_PORT3 &BIT2)) { sound.PlayBaseHit(); }
                     //if ((value & BIT3) && !(OUT_PORT3 &BIT3)) { sound.PlayInvHit(); }
@@ -189,6 +188,7 @@
                     result = (byte)((((OUT_PORT4HI << 8) | OUT_PORT4LO) << OUT_PORT2) >> 8);
                     break;
             }
+
             return result;
         }
     }
