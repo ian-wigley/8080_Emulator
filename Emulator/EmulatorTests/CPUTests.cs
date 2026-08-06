@@ -1,489 +1,484 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
 using Emulator;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NUnit.Framework;
 
-
-namespace Emulator.Tests
+namespace EmulatorTests
 {
-    [TestFixture()]
-    public class CPUTests
+    [TestFixture]
+    public class CpuTests
     {
-        private CPU cpu;
-        private IO io;
-
         [SetUp]
         protected void SetUp()
         {
-            List<byte> rom = new List<byte>();
+            var rom = new List<byte>();
             cpu = new CPU(rom, io, null);
         }
 
-        [Test()]
+        private CPU cpu;
+        private IO io;
+
+        [Test]
         public void CPUTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void RunTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void ExecuteInstructionTest()
         {
             cpu.Instruction_JMP(195);
         }
 
-        [Test()]
+        [Test]
         public void CallInterruptTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void NOPTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_JMPTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_LXITest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_MVITest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_CALLTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_LDATest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_MOVHLTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_INXTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_DCXTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_DECTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_INCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_RETTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_MOVTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_CMPTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_PUSHTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_POPTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_DADTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_XCHGTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_XTHLTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_OUTPTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_INPTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_PCHLTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_RSTTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_RLCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_RALTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_RRCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_RARTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_ANDTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_ADDTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_STATest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_XORTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_DITest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_EITest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_STCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_CMCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_ORTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_SUBTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_LHLDTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_SHLDTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_SBBITest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_DAATest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_CMATest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void Instruction_ADCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetATest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetBTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetDTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetETest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetHTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetLTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetBCTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetDETest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetHLTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void SetSPTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void FetchRomByteTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void FetchRomShortTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void ReadByteTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void ReadShortTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void WriteShortTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void WriteByteTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void StackPushTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void StackPopTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void PerformDecTest()
         {
             ushort invalue = 0;
             var result = cpu.PerformDec(invalue);
-            Assert.AreEqual(result, 255);
+            Assert.Equals(result, 255);
         }
 
-        [Test()]
+        [Test]
         public void PerformIncTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void setFlagZeroSignTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void PerformAndTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void PerformXorTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void PerformOrTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void PerformByteAddTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void PerformByteSubTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void PerformCompSubTest()
         {
             Assert.Fail();
         }
 
-        [Test()]
+        [Test]
         public void AddHLTest()
         {
             ushort invalue = 256;
             cpu.AddHL(invalue);
-            Assert.AreEqual(cpu.HL, invalue);
-            Assert.AreEqual(cpu.CARRY, 0);
+            Assert.Equals(cpu.HL, invalue);
+            Assert.Equals(cpu.CARRY, 0);
         }
 
-        [Test()]
+        [Test]
         public void ResetTest()
         {
             Assert.Fail();
