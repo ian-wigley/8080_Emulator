@@ -3,7 +3,6 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using Microsoft.Testing.Platform.Extensions.TestFramework;
 
 namespace EmulatorTests
 {
@@ -11,14 +10,18 @@ namespace EmulatorTests
     {
         private readonly List<Trace> _iterationTraces = new List<Trace>();
         private readonly List<Trace> _perIterationTraces = new List<Trace>();
+        private int _startIteration;
+        private readonly int _endIteration;
 
-        public TestCpuEmulationTracing(List<byte> rom, IO io, Label label) : base(rom, io, label)
+        public TestCpuEmulationTracing(List<byte> rom, IO io, Label label, int startIteration, int endIteration) : base(rom, io, label)
         {
+            _startIteration = startIteration;
+            _endIteration = endIteration;
         }
 
         public void Execute()
         {
-            while (iteration < 1)
+            while (_startIteration < _endIteration)
             {
                 Run();
             }
@@ -46,7 +49,7 @@ namespace EmulatorTests
 
             if (CRASHED) return;
             PopulateIterationsTraceInformation();
-            iteration += 1;
+            _startIteration += 1;
         }
 
         private void PopulateIterationsTraceInformation()
@@ -54,11 +57,11 @@ namespace EmulatorTests
             _iterationTraces.Add(PopulateTrace(""));
         }
 
-        public Trace PopulateTrace(string opcode)
+        private Trace PopulateTrace(string opcode)
         {
             return new Trace
             {
-                iteration = iteration,
+                iteration = _startIteration,
                 opcode = opcode,
                 pc = PC,
                 sp = SP,
@@ -78,7 +81,7 @@ namespace EmulatorTests
                 halfcarry = HALFCARRY,
                 parity = false,
                 interrupt = false,
-                Memory =
+                memory =
                 {
                     [9206] = rom[9206],
                     [9207] = rom[9207],
@@ -90,10 +93,10 @@ namespace EmulatorTests
                     [9215] = rom[9215],
                 }
             };
-        } 
-        
-        
-        public void OutputInfo(string opcode)
+        }
+
+
+        private void OutputInfo(string opcode)
         {
             _perIterationTraces.Add(PopulateTrace(opcode));
         }
@@ -478,7 +481,7 @@ namespace EmulatorTests
                     break;
                 default:
                     CRASHED = true;
-                    MessageBox.Show("Emulator Crashed @ instruction : " + instructionCounter + " " + bytes);
+                    MessageBox.Show(@"Emulator Crashed @ instruction : " + instructionCounter + @" " + bytes);
                     break;
             }
 
@@ -488,10 +491,7 @@ namespace EmulatorTests
                 if (INTERRUPT)
                 {
                     // There are two interrupts that occur every frame (address $08 and $10)
-                    if (interrupt_alternate == 0)
-                        CallInterrupt(0x08);
-                    else
-                        CallInterrupt(0x10);
+                    CallInterrupt(interrupt_alternate == 0 ? (short)0x08 : (short)0x10);
                 }
 
                 interrupt_alternate = 1 - interrupt_alternate;
@@ -524,7 +524,7 @@ namespace EmulatorTests
                 for (var i = start; i < end + 1001; i++) rom.Add(0);
 
                 var io = new IO();
-                var emulatorTracing = new TestCpuEmulationTracing(rom, io, null);
+                var emulatorTracing = new TestCpuEmulationTracing(rom, io, null, 0, 1);
                 io.SetCPU(emulatorTracing);
                 emulatorTracing.Execute();
             }
