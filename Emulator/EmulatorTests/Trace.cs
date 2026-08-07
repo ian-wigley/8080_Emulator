@@ -24,13 +24,13 @@ namespace EmulatorTests
         public ushort halfcarry { get; set; }
         public bool parity { get; set; }
         public bool interrupt { get; set; }
-        public Dictionary<ushort, byte> Memory { get; set; } = new Dictionary<ushort, byte>();
+        public Dictionary<ushort, byte> memory { get; set; } = new Dictionary<ushort, byte>();
         
         public override string ToString()
         {
             var sb = new System.Text.StringBuilder();
             sb.Append($"Iteration: {iteration}");
-            sb.Append($"Opcode: {opcode}");
+            sb.Append($", Opcode: {opcode}");
             sb.Append($", PC: {pc}");
             sb.Append($", SP: {sp}");
             sb.Append($", A: {a}");
@@ -50,7 +50,7 @@ namespace EmulatorTests
             sb.Append($", CARRY: {carry}");
             sb.Append($", INTERRUPT: {interrupt.ToString().ToLower()}");
 
-            foreach (var mem in Memory)
+            foreach (var mem in memory)
             {
                  sb.Append($", {mem.Key}: {mem.Value}");
             }
