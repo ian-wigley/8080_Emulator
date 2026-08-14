@@ -1,6 +1,7 @@
 using Emulator;
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
@@ -9,11 +10,14 @@ namespace EmulatorTests
     public class TestCpuEmulationTracing : CPU
     {
         private readonly List<Trace> _iterationTraces = new List<Trace>();
+        private readonly List<List<Trace>> _collectionOfPerIterationTraces = new List<List<Trace>>();
         private readonly List<Trace> _perIterationTraces = new List<Trace>();
+        private readonly List<string> _perIterationTracesStrings = new List<string>();
         private int _startIteration;
         private readonly int _endIteration;
 
-        public TestCpuEmulationTracing(List<byte> rom, IO io, Label label, int startIteration, int endIteration) : base(rom, io, label)
+        public TestCpuEmulationTracing(List<byte> rom, IO io, Label label, int startIteration, int endIteration) : base(
+            rom, io, label)
         {
             _startIteration = startIteration;
             _endIteration = endIteration;
@@ -23,17 +27,65 @@ namespace EmulatorTests
         {
             while (_startIteration < _endIteration)
             {
+                WriteOutPerIterationTraceStrings();
+                if (_startIteration == 10)
+                {
+                    var _ = true;
+                }
+
+                Debug.WriteLine($"==================Starting-Iteration-{_startIteration}================");
+                _perIterationTracesStrings.Add(
+                    $"==================Starting-Iteration-{_startIteration}================");
                 Run();
             }
 
-            using (var writer = new StreamWriter("csharp_per_iteration_trace.txt"))
+            WriteOutTraceData();
+        }
+
+        private void WriteOutPerIterationTraceStrings()
+        {
+            var path = $"csharp_per_iteration_{_startIteration}_trace_strings.txt";
+            using (var writer = new StreamWriter(path))
             {
-                foreach (var trace in _perIterationTraces)
+                foreach (var trace in _perIterationTracesStrings)
                 {
                     writer.WriteLine(trace);
                 }
             }
-            
+            _perIterationTracesStrings.Clear();
+        }
+
+        private void WriteOutTraceData()
+        {
+            foreach (var traces in _collectionOfPerIterationTraces)
+            {
+                if (traces.Count > 0)
+                {
+                    var iter = traces[0].iteration;
+                    var path = $"csharp_per_iteration_trace_{iter}.txt";
+                    using (var writer = new StreamWriter(path))
+                    {
+                        foreach (var trace in traces)
+                        {
+                            writer.WriteLine(trace);
+                        }
+                    }
+                }
+            }
+
+            // using (var writer = new StreamWriter("csharp_per_iteration_trace.txt"))
+            // {
+            //     for (var iteration = 0; iteration < _collectionOfPerIterationTraces.Count; iteration++)
+            //     {
+            //         writer.WriteLine($"========== ITERATION {iteration} ==========");
+            //
+            //         foreach (var trace in _collectionOfPerIterationTraces[iteration])
+            //         {
+            //             writer.WriteLine(trace);
+            //         }
+            //     }
+            // }
+
             using (var writer = new StreamWriter("csharp_iterations_trace.txt"))
             {
                 foreach (var trace in _iterationTraces)
@@ -42,10 +94,15 @@ namespace EmulatorTests
                 }
             }
         }
+        
+        
+        
 
         private new void Run()
         {
             for (var i = 0; i < instruction_per_frame; i++) ExecuteInstruction();
+            _collectionOfPerIterationTraces.Add(new List<Trace>(_perIterationTraces));
+            _perIterationTraces.Clear();
 
             if (CRASHED) return;
             PopulateIterationsTraceInformation();
@@ -63,6 +120,7 @@ namespace EmulatorTests
             {
                 iteration = _startIteration,
                 opcode = opcode,
+                m_byte = bytes,
                 pc = PC,
                 sp = SP,
                 a = A,
@@ -95,10 +153,11 @@ namespace EmulatorTests
             };
         }
 
-
         private void OutputInfo(string opcode)
         {
             _perIterationTraces.Add(PopulateTrace(opcode));
+            Debug.WriteLine($"Opcode: {opcode}, rom[9212]: {rom[9212]}");
+            _perIterationTracesStrings.Add($"Opcode: {opcode}, rom[9212]: {rom[9212]}");
         }
 
         private new void ExecuteInstruction()
@@ -498,6 +557,25 @@ namespace EmulatorTests
                 instructionCounter = 0;
             }
         }
+
+        protected override void WriteShort(ushort inAddress, ushort inWord)
+        {
+            var valueOne = (byte)(inWord >> 8);
+            var valueTwo = (byte)inWord;
+            Debug.WriteLine($"WriteShort inAddress: {inAddress}, inByte: {inWord}");
+            Debug.WriteLine($"WriteShort valueOne: {valueOne}, valueTwo: {valueTwo}");
+            _perIterationTracesStrings.Add($"WriteShort inAddress: {inAddress}, inByte: {inWord}");
+            _perIterationTracesStrings.Add($"WriteShort valueOne: {valueOne}, valueTwo: {valueTwo}");
+            rom[inAddress + 1] = (byte)(inWord >> 8);
+            rom[inAddress + 0] = (byte)inWord;
+        }
+
+        protected override void WriteByte(ushort inAddress, ushort inByte)
+        {
+            Debug.WriteLine($"WriteByte inAddress: {inAddress}, inByte: {inByte}");
+            _perIterationTracesStrings.Add($"WriteByte inAddress: {inAddress}, inByte: {inByte}");
+            rom[inAddress] = (byte)inByte;
+        }
     }
 
     [TestFixture]
@@ -510,24 +588,24 @@ namespace EmulatorTests
 
             var path = Directory.GetCurrentDirectory();
             path += "/invaders.rom";
-            if (File.Exists(path))
+            if (!File.Exists(path)) return;
+            using (var b = new BinaryReader(File.Open(path, FileMode.Open)))
             {
-                using (var b = new BinaryReader(File.Open(path, FileMode.Open)))
-                {
-                    // Read the input stream & display the contents
-                    while (b.BaseStream.Position < b.BaseStream.Length) rom.Add(b.ReadByte());
-                }
-
-                var start = rom.Count;
-                var end = rom.Count * 2;
-
-                for (var i = start; i < end + 1001; i++) rom.Add(0);
-
-                var io = new IO();
-                var emulatorTracing = new TestCpuEmulationTracing(rom, io, null, 0, 1);
-                io.SetCPU(emulatorTracing);
-                emulatorTracing.Execute();
+                // Read the input stream & display the contents
+                while (b.BaseStream.Position < b.BaseStream.Length) rom.Add(b.ReadByte());
             }
+
+            var start = rom.Count;
+            var end = rom.Count * 2;
+
+            for (var i = start; i < end + 1001; i++) rom.Add(0);
+
+            var io = new IO();
+            const int startIteration = 0;
+            const int endIteration = 20;
+            var emulatorTracing = new TestCpuEmulationTracing(rom, io, null, startIteration, endIteration);
+            io.SetCPU(emulatorTracing);
+            emulatorTracing.Execute();
         }
     }
 }
