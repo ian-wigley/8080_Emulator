@@ -68,7 +68,7 @@ namespace Emulator
         }
 
         // All opcodes are 1 byte wide
-        public void ExecuteInstruction()
+        private void ExecuteInstruction()
         {
             if (CRASHED) return;
             bytes = FetchRomByte();
@@ -1490,13 +1490,13 @@ namespace Emulator
             return (ushort)((rom[inAddress + 1] << 8) + rom[inAddress + 0]);
         }
 
-        public void WriteShort(ushort inAddress, ushort inWord)
+        protected virtual void WriteShort(ushort inAddress, ushort inWord)
         {
             rom[inAddress + 1] = (byte)(inWord >> 8);
             rom[inAddress + 0] = (byte)inWord;
         }
 
-        public void WriteByte(ushort inAddress, ushort inByte)
+        protected virtual void WriteByte(ushort inAddress, ushort inByte)
         {
             rom[inAddress] = (byte)inByte;
         }
