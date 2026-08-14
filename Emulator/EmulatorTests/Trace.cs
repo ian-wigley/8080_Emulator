@@ -6,6 +6,7 @@ namespace EmulatorTests
     {
         public int iteration { get; set; }
         public string opcode { get; set; }
+        public ushort m_byte { get; set; }
         public int pc { get; set; }
         public ushort sp { get; set; }
         public ushort a { get; set; }
@@ -31,6 +32,7 @@ namespace EmulatorTests
             var sb = new System.Text.StringBuilder();
             sb.Append($"Iteration: {iteration}");
             sb.Append($", Opcode: {opcode}");
+            sb.Append($", Byte: {m_byte}");
             sb.Append($", PC: {pc}");
             sb.Append($", SP: {sp}");
             sb.Append($", A: {a}");
