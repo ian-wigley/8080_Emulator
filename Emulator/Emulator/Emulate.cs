@@ -101,7 +101,7 @@ namespace Emulator
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("The file could not be read: " + ex.Message);
+                    MessageBox.Show(@"The file could not be read: " + ex.Message);
                 }
                 finally
                 {
