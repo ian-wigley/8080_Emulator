@@ -1602,7 +1602,6 @@ namespace Emulator
             SIGN = (ushort)(value & 128);
         }
 
-
         public void AddHL(ushort inValue)
         {
             var value = HL + inValue;
