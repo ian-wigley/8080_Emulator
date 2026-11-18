@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -8,7 +9,7 @@ using System.Windows.Forms;
 
 namespace Emulator
 {
-    public partial class Emulate : Form
+    public partial class Emulate : Form, IMessageFilter
     {
         private readonly uint[,] color = new uint[32, 2];
         private readonly uint[,] color2 = new uint[32, 2];
@@ -19,10 +20,17 @@ namespace Emulator
         private CPU m_cpu;
         private IO m_io;
 
+        // Frame pacing
+        private const double FrameMs = 1000.0 / 60.0;
+        private readonly Stopwatch clock = Stopwatch.StartNew();
+        private double nextFrameMs;
+
         public Emulate()
         {
             Application.Idle += HandleApplicationIdle;
             InitializeComponent();
+            Application.AddMessageFilter(this);
+            timeBeginPeriod(1);
 
             for (var i = 0; i < 32; i++)
             {
@@ -47,6 +55,12 @@ namespace Emulator
             }
         }
 
+        [DllImport("winmm.dll")]
+        private static extern uint timeBeginPeriod(uint milliseconds);
+
+        [DllImport("winmm.dll")]
+        private static extern uint timeEndPeriod(uint milliseconds);
+
         [DllImport("user32.dll")]
         private static extern bool PeekMessage(out Message message, IntPtr window, uint messageFilterMinimum,
             uint messageFilterMaximum, uint shouldRemoveMessage);
@@ -59,13 +73,29 @@ namespace Emulator
         private void HandleApplicationIdle(object sender, EventArgs e)
         {
             while (IsApplicationIdle())
-                if (m_cpu != null)
-                    UpdateLoop();
+            {
+                if (m_cpu == null)
+                {
+                    System.Threading.Thread.Sleep(10);
+                    continue;
+                }
+
+                var now = clock.Elapsed.TotalMilliseconds;
+                if (now < nextFrameMs)
+                {
+                    System.Threading.Thread.Sleep(1);
+                    continue;
+                }
+
+                if (now - nextFrameMs > 5 * FrameMs) nextFrameMs = now;
+                nextFrameMs += FrameMs;
+
+                UpdateLoop();
+            }
         }
 
         private void UpdateLoop()
         {
-            m_io.Update();
             m_cpu.Run();
             DrawVertical();
             //DrawHorizontal();
@@ -82,8 +112,6 @@ namespace Emulator
                 FilterIndex = 2,
                 RestoreDirectory = true
             };
-
-            var tempString = "";
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -122,20 +150,10 @@ namespace Emulator
             m_io.SetCPU(m_cpu);
         }
 
-        // Save File method
-        private void toolStripMenuItem2_Click(object sender, EventArgs e)
-        {
-        }
-
         // Exit the application
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
-        }
-
-
-        private void Form1_Paint(object sender, PaintEventArgs e)
-        {
         }
 
         private void SetPixel(byte[] imagedata, int x, int y, uint color)
@@ -145,6 +163,14 @@ namespace Emulator
             imagedata[i++] = (byte)((color >> 8) & 0xFF);
             imagedata[i++] = (byte)(color & 0xFF);
             imagedata[i] = (byte)((color >> 24) & 0xFF);
+        }
+
+        private void SetFrame(Bitmap bitmap)
+        {
+            var old = pictureBox1.Image;
+            pictureBox1.Image = bitmap;
+            old?.Dispose();
+            Invalidate();
         }
 
         private void DrawVertical()
@@ -200,8 +226,7 @@ namespace Emulator
                 var pNative = bmData.Scan0;
                 Marshal.Copy(imageData, 0, pNative, 256 * 256 * ch);
                 bitmap.UnlockBits(bmData);
-                pictureBox1.Image = bitmap;
-                Invalidate();
+                SetFrame(bitmap);
             }
         }
 
@@ -257,57 +282,63 @@ namespace Emulator
                 var pNative = bmData.Scan0;
                 Marshal.Copy(imageData, 0, pNative, 256 * 256 * ch);
                 bitmap.UnlockBits(bmData);
-                pictureBox1.Image = bitmap;
-                Invalidate();
+                SetFrame(bitmap);
             }
         }
 
-        //https://social.msdn.microsoft.com/Forums/vstudio/en-US/7fc58f05-fccc-46ec-b58e-8755afb6e90f/monitoring-a-shortcut-key-while-application-running-in-background?forum=csharpgeneral#57de7967-b7ba-4cd0-8fe8-48fde41466dd
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        // Sees every key down AND key up for the app, whatever control has focus,
+        // so we can track which keys are held.
+        public bool PreFilterMessage(ref Message m)
         {
             const int WM_KEYDOWN = 0x100;
+            const int WM_KEYUP = 0x101;
             const int WM_SYSKEYDOWN = 0x104;
+            const int WM_SYSKEYUP = 0x105;
 
-            if (msg.Msg == WM_KEYDOWN || msg.Msg == WM_SYSKEYDOWN)
-                switch (keyData)
-                {
-                    // Coin ?
-                    case Keys.C:
-                        m_io.KetDownCoin();
-                        break;
+            if (m_io == null || ActiveForm != this) return false;
 
-                    // Start player 1
-                    case Keys.D1:
-                        m_io.KeyDown1();
-                        break;
+            bool down;
+            switch (m.Msg)
+            {
+                case WM_KEYDOWN:
+                case WM_SYSKEYDOWN:
+                    down = true;
+                    break;
+                case WM_KEYUP:
+                case WM_SYSKEYUP:
+                    down = false;
+                    break;
+                default:
+                    return false;
+            }
 
-                    // Start player 2
-                    case Keys.D2:
-                        m_io.KeyDown2();
-                        break;
+            // OS key-repeat just re-sends "down", which is harmless now that we track state
+            switch ((Keys)m.WParam.ToInt32())
+            {
+                case Keys.C: m_io.SetCoin(down); break;       // Coin
+                case Keys.D1: m_io.SetStart1(down); break;    // Start player 1
+                case Keys.D2: m_io.SetStart2(down); break;    // Start player 2
+                case Keys.T: m_io.SetTilt(down); break;       // Tilt
+                case Keys.Left: m_io.SetLeft(down); break;    // Move left
+                case Keys.Right: m_io.SetRight(down); break;  // Move right
+                case Keys.Space: m_io.SetFire(down); break;   // Fire
+                default: return false;
+            }
 
-                    // Tilt
-                    case Keys.T:
-                        m_io.KeyDownT();
-                        break;
+            return true; // handled
+        }
 
-                    // Move left
-                    case Keys.Left:
-                        m_io.KeyDownLeft();
-                        break;
+        protected override void OnDeactivate(EventArgs e)
+        {
+            m_io?.ReleaseAll(); // we won't see the key up if focus is lost while a key is held
+            base.OnDeactivate(e);
+        }
 
-                    // Move right
-                    case Keys.Right:
-                        m_io.KeyDownRight();
-                        break;
-
-                    // Fire
-                    case Keys.Space:
-                        m_io.KeyDownSpace();
-                        break;
-                }
-
-            return base.ProcessCmdKey(ref msg, keyData);
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            Application.RemoveMessageFilter(this);
+            timeEndPeriod(1);
+            base.OnFormClosed(e);
         }
 
         [StructLayout(LayoutKind.Sequential)]
