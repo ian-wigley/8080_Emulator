@@ -28,11 +28,6 @@ namespace EmulatorTests
             while (_startIteration < _endIteration)
             {
                 WriteOutPerIterationTraceStrings();
-                if (_startIteration == 10)
-                {
-                    var _ = true;
-                }
-
                 Debug.WriteLine($"==================Starting-Iteration-{_startIteration}================");
                 _perIterationTracesStrings.Add(
                     $"==================Starting-Iteration-{_startIteration}================");
@@ -94,9 +89,6 @@ namespace EmulatorTests
                 }
             }
         }
-        
-        
-        
 
         private new void Run()
         {
