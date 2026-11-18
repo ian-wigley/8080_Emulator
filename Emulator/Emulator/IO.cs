@@ -21,18 +21,12 @@
         private byte OUT_PORT4LO;
         private byte OUT_PORT5;
 
-        private bool m_coin;
         private CPU m_cpu;
-        private bool m_fire;
-        private bool m_left;
-        private bool m_right;
-        private bool m_start;
-        private bool m_tilt = false;
 
         public IO()
         {
             // Dipswitch: BIT0 and BIT1 controls starting number of life (from 3 to 6)
-            // BIT7 prints additionnal coin message on intro screen
+            // BIT7 prints additional coin message on intro screen
             IN_PORT2 = (byte)(IN_PORT2 | BIT0 | BIT1);
             IN_PORT2 = (byte)(IN_PORT2 | BIT7);
         }
@@ -43,89 +37,43 @@
             m_cpu = cpu;
         }
 
-        public void Update()
+        // Key state is *held*, not pulsed: the port bit stays set while the key is down and is
+        // cleared on key up (port bit 1 = pressed). The game reads the ports from its interrupt
+        // routine, so no per-frame Update() is needed any more.
+        private static void SetBit(ref byte port, byte mask, bool down)
         {
-            // Clear player input bits
+            port = (byte)(down ? (port | mask) : (port & ~mask));
+        }
+
+        public void SetCoin(bool down)   { SetBit(ref IN_PORT1, BIT0, down); }
+        public void SetStart2(bool down) { SetBit(ref IN_PORT1, BIT1, down); }
+        public void SetStart1(bool down) { SetBit(ref IN_PORT1, BIT2, down); }
+        public void SetTilt(bool down)   { SetBit(ref IN_PORT2, BIT2, down); }
+
+        // Left / right / fire: same key used for player 1 and 2
+        public void SetLeft(bool down)
+        {
+            SetBit(ref IN_PORT1, BIT5, down);
+            SetBit(ref IN_PORT2, BIT5, down);
+        }
+
+        public void SetRight(bool down)
+        {
+            SetBit(ref IN_PORT1, BIT6, down);
+            SetBit(ref IN_PORT2, BIT6, down);
+        }
+
+        public void SetFire(bool down)
+        {
+            SetBit(ref IN_PORT1, BIT4, down);
+            SetBit(ref IN_PORT2, BIT4, down);
+        }
+
+        // Call when the window loses focus so no key is left "stuck" down
+        public void ReleaseAll()
+        {
             IN_PORT1 = (byte)(IN_PORT1 & ~(BIT0 | BIT1 | BIT2 | BIT4 | BIT5 | BIT6));
             IN_PORT2 = (byte)(IN_PORT2 & ~(BIT2 | BIT4 | BIT5 | BIT6));
-
-            if (m_coin)
-            {
-                IN_PORT1 |= 0x1;
-                m_coin = false;
-            }
-
-            if (m_start)
-            {
-                IN_PORT1 |= 0x4;
-                m_start = false;
-            }
-
-            if (m_left)
-            {
-                // Move left: same key used for player 1 and 2
-                IN_PORT1 = (byte)(IN_PORT1 | BIT5);
-                IN_PORT2 = (byte)(IN_PORT2 | BIT5);
-                m_left = false;
-            }
-
-            if (m_right)
-            {
-                // Move right: same key used for player 1 and 2
-                IN_PORT1 = (byte)(IN_PORT1 | BIT6);
-                IN_PORT2 = (byte)(IN_PORT2 | BIT6);
-                m_right = false;
-            }
-
-            if (m_fire)
-            {
-                // shoot button: same key used for player 1 and 2
-                IN_PORT1 = (byte)(IN_PORT1 | BIT4);
-                IN_PORT2 = (byte)(IN_PORT2 | BIT4);
-                m_fire = false;
-            }
-        }
-
-        public void KetDownCoin()
-        {
-            // Insert a coin
-            m_coin = true;
-        }
-
-        public void KeyDown1()
-        {
-            // Player 1 start
-            m_start = true;
-        }
-
-        public void KeyDown2()
-        {
-            // Player 2 start
-            IN_PORT1 = (byte)(IN_PORT1 | BIT1);
-        }
-
-        public void KeyDownT()
-        {
-            // Tilt detection trigger
-            IN_PORT2 = (byte)(IN_PORT2 | BIT2);
-        }
-
-        public void KeyDownLeft()
-        {
-            // Move left: same key used for player 1 and 2
-            m_left = true;
-        }
-
-        public void KeyDownRight()
-        {
-            // Move right: same key used for player 1 and 2
-            m_right = true;
-        }
-
-        public void KeyDownSpace()
-        {
-            // Shoot button: same key used for player 1 and 2
-            m_fire = true;
         }
 
         public void OutputPort(byte port, byte value)
@@ -172,22 +120,15 @@
 
         public byte InputPort(byte port)
         {
-            byte result = 0;
-
-            switch (port)
+            byte result = port switch
             {
                 // Player 1 Input keys
-                case 1:
-                    result = IN_PORT1;
-                    break;
+                1 => IN_PORT1,
                 // Player 2 Input keys And dip switches:
-                case 2:
-                    result = IN_PORT2;
-                    break;
-                case 3:
-                    result = (byte)((((OUT_PORT4HI << 8) | OUT_PORT4LO) << OUT_PORT2) >> 8);
-                    break;
-            }
+                2 => IN_PORT2,
+                3 => (byte)((((OUT_PORT4HI << 8) | OUT_PORT4LO) << OUT_PORT2) >> 8),
+                _ => 0
+            };
 
             return result;
         }
